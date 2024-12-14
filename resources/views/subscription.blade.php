@@ -1,118 +1,10 @@
-<?php
-session_start([
-    'cookie_lifetime' => 86400,
-    'cookie_secure'   => true,
-    'cookie_httponly' => true,
-    'use_strict_mode' => true,
-    'sid_length'      => 48,
-]);
-
-include('config.php'); // Includes database connection
-
-try {
-    // Check if username is set in session
-    if (!isset($_SESSION["username"])) {
-        throw new Exception("No username found in session.");
-    }
-
-    $username = htmlspecialchars($_SESSION["username"]);
-
-    // Retrieve user information from the users table
-    $user_query = "SELECT username, email, date FROM users WHERE username = :username";
-    $stmt = $connection->prepare($user_query);
-    $stmt->bindParam(':username', $username);
-    $stmt->execute();
-    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$user_info) {
-        throw new Exception("User not found.");
-    }
-
-    // Retrieve user email and registration date
-    $email = htmlspecialchars($user_info['email']);
-    $date = htmlspecialchars($user_info['date']);
-} catch (PDOException $e) {
-    error_log("PDO Error: " . $e->getMessage());
-    exit("Database Error: " . $e->getMessage());
-} catch (Exception $e) {
-    error_log("Error: " . $e->getMessage());
-    exit("Error: " . $e->getMessage());
-}
-
-try {
-    // Fetch inventory notifications with product images
-    $inventoryQuery = $connection->prepare("
-        SELECT i.product_name, i.available_stock, i.inventory_qty, i.sales_qty, p.image_path
-        FROM inventory i
-        JOIN products p ON i.product_id = p.id
-        WHERE i.available_stock < :low_stock OR i.available_stock > :high_stock
-        ORDER BY i.last_updated DESC
-    ");
-    $inventoryQuery->execute([
-        ':low_stock' => 10,
-        ':high_stock' => 1000,
-    ]);
-    $inventoryNotifications = $inventoryQuery->fetchAll();
-
-    // Fetch reports notifications with product images
-    $reportsQuery = $connection->prepare("
-        SELECT JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_name')) AS product_name, 
-               JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) AS revenue,
-               p.image_path
-        FROM reports r
-        JOIN products p ON JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_id')) = p.id
-        WHERE JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) > :high_revenue 
-           OR JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) < :low_revenue
-        ORDER BY r.report_date DESC
-    ");
-    $reportsQuery->execute([
-        ':high_revenue' => 10000,
-        ':low_revenue' => 1000,
-    ]);
-    $reportsNotifications = $reportsQuery->fetchAll();
-} catch (PDOException $e) {
-    // Handle any errors during database queries
-    echo "Error: " . $e->getMessage();
-}
-
-try {
-    // Prepare and execute the query to fetch user information from the users table
-    $user_query = "SELECT id, username, date, email, phone, location, is_active, role, user_image FROM users WHERE username = :username";
-    $stmt = $connection->prepare($user_query);
-    $stmt->bindParam(':username', $username);
-    $stmt->execute();
-    
-    // Fetch user data
-    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($user_info) {
-        // Retrieve user details and sanitize output
-        $email = htmlspecialchars($user_info['email']);
-        $date = date('d F, Y', strtotime($user_info['date']));
-        $location = htmlspecialchars($user_info['location']);
-        $user_id = htmlspecialchars($user_info['id']);
-        
-        // Check if a user image exists, use default if not
-        $existing_image = htmlspecialchars($user_info['user_image']);
-        $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
-
-    }
-} catch (PDOException $e) {
-    // Handle database errors
-    exit("Database error: " . $e->getMessage());
-} catch (Exception $e) {
-    // Handle user not found or other exceptions
-    exit("Error: " . $e->getMessage());
-}
-
-?>
 
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <title>Terms of Service</title>
+      <title>Subscriptions</title>
       
       <!-- Favicon -->
       <link rel="shortcut icon" href="http://localhost:8000/assets/images/favicon-blue.ico" />
@@ -121,13 +13,72 @@ try {
       <link rel="stylesheet" href="http://localhost:8000/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css">
       <link rel="stylesheet" href="http://localhost:8000/assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css">
       <link rel="stylesheet" href="http://localhost:8000/assets/vendor/remixicon/fonts/remixicon.css">  </head>
-  <body class="  ">
-    <!-- loader Start -->
-    <div id="loading">
-          <div id="loading-center">
-          </div>
-    </div>
-    <!-- loader END -->
+      <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            width: 80%;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        h1 {
+            text-align: center;
+            color: #007BFF;
+        }
+        label {
+            display: block;
+            margin: 0.5rem 0 0.2rem;
+            color: #555;
+        }
+        input, select {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        /* Modal styling */
+  .modal-content {
+      background-color: #fff;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 50%;
+      margin: auto;
+  }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+        }
+    </style>
+    
+      <body class="  ">
+    
     <!-- Wrapper Start -->
     <div class="wrapper">
       
@@ -190,7 +141,7 @@ try {
                                               <i class="las la-minus"></i><span>List Category</span>
                                           </a>
                                   </li>
-                             
+                                 
                           </ul>
                       </li>
                       <li class=" ">
@@ -229,7 +180,7 @@ try {
                           <ul id="purchase" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
                                           <a href="http://localhost:8000/page-list-expense.php">
-                                              <i class="las la-minus"></i><span>List Expenses</span>
+                                              <i class="las la-minus"></i><span>List Expenses<pan>
                                           </a>
                                   </li>
                                   <li class="">
@@ -255,7 +206,7 @@ try {
                                               <i class="las la-minus"></i><span>List Inventory</span>
                                           </a>
                                   </li>
-                               
+                              
                           </ul>
                       </li>
                       <li class=" ">
@@ -269,23 +220,23 @@ try {
                               </svg>
                           </a>
                           <ul id="people" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
-                                  <li class="">
+                                  <li class="active">
                                           <a href="http://localhost:8000/page-list-customers.php">
                                               <i class="las la-minus"></i><span>Customers</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost:8000/backend/page-add-customers.php">
+                                          <a href="http://localhost:8000/page-add-customers.php">
                                               <i class="las la-minus"></i><span>Add Customers</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost:8000/backend/page-list-staffs.php">
-                                              <i class="las la-minus"></i><span>Staffs</span>
+                                          <a href="http://localhost:8000/page-list-staffs.php">
+                                              <i class="las la-minus"></i><span>Staff</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost:8000/backend/page-add-staffs.php">
+                                          <a href="http://localhost:8000/page-add-staffs.php">
                                               <i class="las la-minus"></i><span>Add Staffs</span>
                                           </a>
                                   </li>
@@ -302,46 +253,45 @@ try {
                           </ul>
                       </li>
                       <li class=" ">
-                          <a href="#otherpage" class="collapsed" data-toggle="collapse" aria-expanded="false">
-                                <svg class="svg-icon" id="p-dash9" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="7" y="7" width="3" height="9"></rect><rect x="14" y="7" width="3" height="5"></rect>
-                              </svg>
-                              <span class="ml-4">Analytics</span>
-                              <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                  <polyline points="10 15 15 20 20 15"></polyline><path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
-                              </svg>
-                          </a>
-                          <ul id="otherpage" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
-                                  <li class="">
-                                          <a href="http://localhost:8000/analytics.php">
-                                              <i class="las la-minus"></i><span>Charts</span>
-                                          </a>
-                                  </li>
-                                  <li class="">
-                                          <a href="http://localhost:8000/analytics-report.php">
-                                              <i class="las la-minus"></i><span>Reports</span>
-                                          </a>
-                                  </li>
-                                  <li class="">
-                                          <a href="http://localhost:8000/sales-metrics.php">
-                                              <i class="las la-minus"></i><span>Category Metrics</span>
-                                          </a>
-                                  </li>
-                                  <li class="">
-                                          <a href="http://localhost:8000/inventory-metrics.php">
-                                              <i class="las la-minus"></i><span>Product Metrics</span>
-                                          </a>
-                                  </li>
-                                  
-                          </ul>
-                      </li>   
-                      
-                  </ul>
+                        <a href="#otherpage" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                              <svg class="svg-icon" id="p-dash9" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="7" y="7" width="3" height="9"></rect><rect x="14" y="7" width="3" height="5"></rect>
+                            </svg>
+                            <span class="ml-4">Analytics</span>
+                            <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="10 15 15 20 20 15"></polyline><path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
+                            </svg>
+                        </a>
+                        <ul id="otherpage" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                                <li class="">
+                                        <a href="http://localhost:8000/analytics.php">
+                                            <i class="las la-minus"></i><span>Charts</span>
+                                        </a>
+                                </li>
+                                <li class="">
+                                        <a href="http://localhost:8000/analytics-report.php">
+                                            <i class="las la-minus"></i><span>Reports</span>
+                                        </a>
+                                </li>
+                                <li class="">
+                                        <a href="http://localhost:8000/sales-metrics.php">
+                                            <i class="las la-minus"></i><span>Sales Metrics</span>
+                                        </a>
+                                </li>
+                                <li class="">
+                                        <a href="http://localhost:8000/inventory-metrics.php">
+                                            <i class="las la-minus"></i><span>Inventory Metrics</span>
+                                        </a>
+                                </li>
+                                
+                        </ul>
+                    </li>   
+                     </ul>
               </nav>
               <div id="sidebar-bottom" class="position-relative sidebar-bottom">
                   <div class="card border-none">
                       <div class="card-body p-0">
-                          
+                         
                       </div>
                   </div>
               </div>
@@ -355,6 +305,7 @@ try {
                       <a href="http://localhost:8000/dashboard.php" class="header-logo">
                           <img src="http://localhost:8000/logonew1.jpg" class="img-fluid rounded-normal" alt="logo">
                           <h5 class="logo-title ml-3">SalesPilot</h5>
+      
                       </a>
                   </div>
                   <div class="iq-search-bar device-search">
@@ -371,10 +322,7 @@ try {
                       </button>
                       <div class="collapse navbar-collapse" id="navbarSupportedContent">
                           <ul class="navbar-nav ml-auto navbar-list align-items-center">
-                              <li class="nav-item nav-icon dropdown">
-                                  
-                                  
-                              </li>
+                             
                               <li>
                                   <a href="#" class="btn border add-btn shadow-none mx-2 d-none d-md-block"
                                       data-toggle="modal" data-target="#new-order"><i class="las la-plus mr-2"></i>New
@@ -469,7 +417,7 @@ try {
                         <p class="text-center">No reports notifications available.</p>
                     <?php endif; ?>
                 </div>
-                <a class="right-ic btn btn-primary btn-block position-relative p-2" href="page-list-inventory.php" role="button">
+                <a class="right-ic btn btn-primary btn-block position-relative p-2" href="#" role="button">
                     View All
                 </a>
             </div>
@@ -537,167 +485,64 @@ try {
         </div>
     </div>
 </div>
-      </div>      <div class="content-page">
-        <div id="faqAccordion" class="container-fluid">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="iq-accordion career-style faq-style">
-                        <div class="card iq-accordion-block">
-                            <div class="active-faq clearfix" id="headingOne">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <a role="contentinfo" class="accordion-title" data-toggle="collapse"
-                                                data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                                <span><p style="font-weight: bold; text-decoration: underline;"><strong>Introduction</strong></p></span>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="accordion-details collapse show" id="collapseOne" aria-labelledby="headingOne"
-                                data-parent="#faqAccordion">
-                                <p class="mb-0">
-                                <p style="text-decoration: underline;"><strong>Welcome to SalesPilot!</strong> </p>
-                                <p>These Terms of Service govern your use of our web application for inventory management and sales analytics. By accessing or using SalesPilot, you agree to comply with and be bound by these Terms. If you do not agree to these Terms, please do not use our service. </p>
-                            </div>
-                        </div>
-                        <div class="card iq-accordion-block">
-                            <div class="active-faq clearfix" id="headingTwo">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
-                                                data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false"
-                                                aria-controls="collapseTwo"><span><p style="font-weight: bold; text-decoration: underline;"><strong> Use of the Service
-                                            </p></strong></span> </a></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="accordion-details collapse" id="collapseTwo" aria-labelledby="headingTwo"
-                                data-parent="#faqAccordion">
-                                <p class="mb-0">
-                                <p style="text-decoration: underline;"><strong>Eligibility</strong></p>
-                                <p>You must be at least 18 years old to use SalesPilot. By using our service, you represent and warrant that you meet this requirement.</p>
-                                    
-                                <p style="text-decoration: underline;"><strong>Account Registration</strong></p>
-                                <p>To access certain features of SalesPilot, you may be required to create an account.</p> 
-                                
-                                <p style="text-decoration: underline;"><strong>You agree to</strong></p>   
-                                <p>Provide accurate, current, and complete information during the registration process.</p>
-                                <p>Maintain and promptly update your account information.</p>
-                                <p>Keep your password secure and not disclose it to any third party.</p>
-                                <p>Accept responsibility for all activities that occur under your account.
-                                </p>
-                            </div>
-                        </div>
-                        <div class="card iq-accordion-block ">
-                            <div class="active-faq clearfix" id="headingThree">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
-                                                data-toggle="collapse" data-target="#collapseThree" aria-expanded="false"
-                                                aria-controls="collapseThree"><span><p style="font-weight: bold; text-decoration: underline;"><strong>User Responsibilities</p></strong> </span> </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="accordion-details collapse" id="collapseThree" aria-labelledby="headingThree"
-                                data-parent="#faqAccordion">
-                                <p class="mb-0">
-                                <p style="text-decoration: underline;"><strong>Compliance with Laws</strong></p>
-                                <p>You agree to use SalesPilot in compliance with all applicable laws and regulations. You are solely responsible for ensuring that your use of the service complies with all applicable laws, including data protection and privacy laws.</p>
-                                    
-                                <p style="text-decoration: underline;"><strong>Prohibited Activities</strong></p>
-                                <p style="text-decoration: underline;"><strong> You agree not to</strong></p>
-                                    
-                                <p>Use the service for any unlawful purposes.</p>
-                                <p>Engage in any activity that could harm or interfere with the operation of the service.</p>
-                                <p>Attempt to gain unauthorized access to any part of the service or its related systems or networks.</p>
-                                <p>Use the service to store, transmit, or distribute any illegal or unauthorized content.</p>
-                                <p>Use any automated means to access the service without our permission.
-                                </p>
-                            </div>
-                        </div>
-                        <div class="card iq-accordion-block ">
-                            <div class="active-faq clearfix" id="headingFour">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
-                                                data-toggle="collapse" data-target="#collapseFour" aria-expanded="false"
-                                                aria-controls="collapseFour"><span><p style="font-weight: bold; text-decoration: underline;"><strong> Intellectual Property</strong></p> </span> </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="accordion-details collapse" id="collapseFour" aria-labelledby="headingFour"
-                                data-parent="#faqAccordion">
-                                <p class="mb-0">
-                                <p style="text-decoration: underline;"><strong>Ownership</strong></p>
-                                <p>SalesPilot and its original content, features, and functionality are and will remain the exclusive property of SalesPilot and its licensors. The service is protected by copyright, trademark, and other laws of both the United States and foreign countries.</p>
-                                    
-                                <p style="text-decoration: underline;"><strong>License</strong></p>
-                                <p>We grant you a limited, non-exclusive, non-transferable, and revocable license to use the service for your internal business purposes, subject to these Terms.</p>
-                                    
-                                <p style="text-decoration: underline;"><strong>Termination</strong></p>
-                                <p>We may terminate or suspend your account and access to the service immediately, without prior notice or liability, if you breach these Terms. Upon termination, your right to use the service will immediately cease. If you wish to terminate your account, you may do so by contacting us.
-                                </p>
-                            </div>
-                        </div>
-                        <div class="card iq-accordion-block">
-                            <div class="active-faq clearfix" id="headingFive">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
-                                                data-toggle="collapse" data-target="#collapseFive" aria-expanded="false"
-                                                aria-controls="collapseFive"><span><p style="font-weight: bold; text-decoration: underline;"><strong> Limitation of Liability</strong></p> </span> </a></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="accordion-details collapse" id="collapseFive" aria-labelledby="headingFive"
-                                data-parent="#faqAccordion">
-                                <p class="mb-0">
-                                <p><strong>To the maximum extent permitted by law, </strong></p>
-                                <p>SalesPilot and its affiliates, directors, employees, agents, and partners shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses, resulting from:</p>
-                                    
-                                    <p>Your use or inability to use the service.</p>
-                                    <p>Any unauthorized access to or use of our servers and/or any personal information stored therein.</p>
-                                    <p>Any interruption or cessation of transmission to or from the service.</p>
-                                    <p>Any bugs, viruses, trojan horses, or the like that may be transmitted to or through the service by any third party.</p>
-                                    <p>Any errors or omissions in any content or for any loss or damage incurred as a result of the use of any content posted, emailed, transmitted, or otherwise made available through the service.</p>
-                                    <p style="text-decoration: underline;"><strong>Disclaimer of Warranties</strong></p>
-                                    <p>The service is provided on an "as is" and "as available" basis. SalesPilot makes no representations or warranties of any kind, express or implied, including but not limited to the implied warranties of merchantability, fitness for a particular purpose, and non-infringement.</p>
-                                    
-                                    <p style="text-decoration: underline;"><strong>Governing Law</strong></p>
-                                    <p>These Terms shall be governed and construed in accordance with the global laws governing application develpoment and usage, without regard to its conflict of law provisions.
-                                </p>
-                            </div>
-                        </div>
-                        <div class="card iq-accordion-block">
-                            <div class="active-faq clearfix" id="headingSix">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
-                                                data-toggle="collapse" data-target="#collapseSix" aria-expanded="false"
-                                                aria-controls="collapseSix"><span><p style="font-weight: bold; text-decoration: underline;"><strong> Changes to These Terms</strong></p> </span> </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="accordion-details collapse" id="collapseSix" aria-labelledby="headingSix"
-                                data-parent="#faqAccordion">
-                                <p class="mb-0">
-                                <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will provide at least 30 days' notice prior to any new terms taking effect. </p>
-                                <p>By continuing to access or use our service after those revisions become effective, you agree to be bound by the revised terms.</p>
-                                    
-                                <p style="text-decoration: underline;"><strong>Contact Us</strong></p>
-                                <p>If you have any questions about these Terms, please contact us at
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="container">
+    <h1>Subscription</h1>
+    <form id="paymentForm" method="post" action="">
+    <div class="form-group">
+        <label for="method">Payment Method:</label>
+        <select id="method" name="method" required>
+            <option value="PayPal">PayPal</option>
+        </select>
+    </div>
+
+    <!-- Plan Selection -->
+    <div class="form-group" id="planSelection">
+        <label for="planSelect">Choose Your Plan:</label>
+        <select id="planSelect" name="planSelect" required>
+            <option value="P-7E210255TM029860GM5HYC4A">Enterprise</option>
+            <option value="P-6TP94103DT2394623M5HYFKY">Business</option>
+            <option value="P-92V01000GH171635WM5HYGRQ">Starter</option>
+        </select>
+    </div>
+
+    <div id="paypal-button-container"></div>
+</form>
+
+<script src="https://www.paypal.com/sdk/js?client-id=AZYvY1lNRIJ-1uKK0buXQvvblKWefjilgca9HAG6YHTYkfFvriP-OHcrUZsv2RCohiWCl59FyvFUST-W&vault=true&intent=subscription"></script>
+<script>
+    // Function to dynamically render PayPal button based on selected plan
+    function renderPayPalButton(planId) {
+        paypal.Buttons({
+            style: {
+                shape: 'pill',
+                color: 'gold',
+                layout: 'vertical',
+                label: 'subscribe'
+            },
+            createSubscription: function(data, actions) {
+                return actions.subscription.create({
+                    plan_id: planId // Use the selected plan ID
+                });
+            },
+            onApprove: function(data, actions) {
+                alert(`Subscription successful! ID: ${data.subscriptionID}`);
+            }
+        }).render('#paypal-button-container'); // Render PayPal button in this container
+    }
+
+    // Initial render for the default selected plan
+    const planSelect = document.getElementById('planSelect');
+    renderPayPalButton(planSelect.value);
+
+    // Re-render PayPal button when the plan changes
+    planSelect.addEventListener('change', function() {
+        document.getElementById('paypal-button-container').innerHTML = ''; // Clear the previous button
+        renderPayPalButton(this.value); // Render button for the newly selected plan
+    });
+</script>
+
+
+    </div>
       </div>
     </div>
     <!-- Wrapper End-->
@@ -710,9 +555,8 @@ try {
                             <ul class="list-inline mb-0">
                                 <li class="list-inline-item"><a href="http://localhost:8000/privacy-policy.php">Privacy Policy</a></li>
                                 <li class="list-inline-item"><a href="http://localhost:8000/terms-of-service.php">Terms of Use</a></li>
-                                <li class="list-inline-item"><a href="http://localhost:8000/subscription.php">Subscriptions</a></li>
+                              <li class="list-inline-item"><a href="http://localhost:8000/subscription.php">Subscriptions</a></li>
                                 <li class="list-inline-item"><a href="http://localhost:8000/pay.php">Pay Now</a></li>
-                                <li class="list-inline-item"><a href="http://localhost:8000/help.html">Help</a></li>
                             </ul>
                         </div>
                         <div class="col-lg-6 text-right">
@@ -731,6 +575,8 @@ try {
     
     <!-- app JavaScript -->
     <script src="http://localhost:8000/assets/js/app.js"></script>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
 document.getElementById('createButton').addEventListener('click', function() {
     // Optional: Validate input or perform any additional checks here
@@ -738,6 +584,7 @@ document.getElementById('createButton').addEventListener('click', function() {
     // Redirect to invoice-form.php
     window.location.href = 'invoice-form.php';
 });
+
 </script>
-  </body>
- </html>
+</body>
+</html>

@@ -1,118 +1,24 @@
-<?php
-session_start([
-    'cookie_lifetime' => 86400,
-    'cookie_secure'   => true,
-    'cookie_httponly' => true,
-    'use_strict_mode' => true,
-    'sid_length'      => 48,
-]);
-
-include('config.php'); // Includes database connection
-
-try {
-    // Check if username is set in session
-    if (!isset($_SESSION["username"])) {
-        throw new Exception("No username found in session.");
-    }
-
-    $username = htmlspecialchars($_SESSION["username"]);
-
-    // Retrieve user information from the users table
-    $user_query = "SELECT username, email, date FROM users WHERE username = :username";
-    $stmt = $connection->prepare($user_query);
-    $stmt->bindParam(':username', $username);
-    $stmt->execute();
-    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$user_info) {
-        throw new Exception("User not found.");
-    }
-
-    // Retrieve user email and registration date
-    $email = htmlspecialchars($user_info['email']);
-    $date = htmlspecialchars($user_info['date']);
-} catch (PDOException $e) {
-    error_log("PDO Error: " . $e->getMessage());
-    exit("Database Error: " . $e->getMessage());
-} catch (Exception $e) {
-    error_log("Error: " . $e->getMessage());
-    exit("Error: " . $e->getMessage());
-}
-
-try {
-    // Fetch inventory notifications with product images
-    $inventoryQuery = $connection->prepare("
-        SELECT i.product_name, i.available_stock, i.inventory_qty, i.sales_qty, p.image_path
-        FROM inventory i
-        JOIN products p ON i.product_id = p.id
-        WHERE i.available_stock < :low_stock OR i.available_stock > :high_stock
-        ORDER BY i.last_updated DESC
-    ");
-    $inventoryQuery->execute([
-        ':low_stock' => 10,
-        ':high_stock' => 1000,
-    ]);
-    $inventoryNotifications = $inventoryQuery->fetchAll();
-
-    // Fetch reports notifications with product images
-    $reportsQuery = $connection->prepare("
-        SELECT JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_name')) AS product_name, 
-               JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) AS revenue,
-               p.image_path
-        FROM reports r
-        JOIN products p ON JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_id')) = p.id
-        WHERE JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) > :high_revenue 
-           OR JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) < :low_revenue
-        ORDER BY r.report_date DESC
-    ");
-    $reportsQuery->execute([
-        ':high_revenue' => 10000,
-        ':low_revenue' => 1000,
-    ]);
-    $reportsNotifications = $reportsQuery->fetchAll();
-} catch (PDOException $e) {
-    // Handle any errors during database queries
-    echo "Error: " . $e->getMessage();
-}
-
-try {
-    // Prepare and execute the query to fetch user information from the users table
-    $user_query = "SELECT id, username, date, email, phone, location, is_active, role, user_image FROM users WHERE username = :username";
-    $stmt = $connection->prepare($user_query);
-    $stmt->bindParam(':username', $username);
-    $stmt->execute();
-    
-    // Fetch user data
-    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($user_info) {
-        // Retrieve user details and sanitize output
-        $email = htmlspecialchars($user_info['email']);
-        $date = date('d F, Y', strtotime($user_info['date']));
-        $location = htmlspecialchars($user_info['location']);
-        $user_id = htmlspecialchars($user_info['id']);
-        
-        // Check if a user image exists, use default if not
-        $existing_image = htmlspecialchars($user_info['user_image']);
-        $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
-
-    }
-} catch (PDOException $e) {
-    // Handle database errors
-    exit("Database error: " . $e->getMessage());
-} catch (Exception $e) {
-    // Handle user not found or other exceptions
-    exit("Error: " . $e->getMessage());
-}
-
-?>
 
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TXR1WFJ4GP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-TXR1WFJ4GP');
+</script>
+
+<meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <title>Terms of Service</title>
+
+<meta content="" name="Boost your business efficiency with SalesPilot – the ultimate sales management app. Track leads, manage clients, and increase revenue effortlessly with our user-friendly platform.">
+  <meta content="" name="Sales productivity tools, Sales and Client management, Business efficiency tools">
+
+      <title>Invoice</title>
       
       <!-- Favicon -->
       <link rel="shortcut icon" href="http://localhost:8000/assets/images/favicon-blue.ico" />
@@ -255,7 +161,7 @@ try {
                                               <i class="las la-minus"></i><span>List Inventory</span>
                                           </a>
                                   </li>
-                               
+                              
                           </ul>
                       </li>
                       <li class=" ">
@@ -275,17 +181,17 @@ try {
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost:8000/backend/page-add-customers.php">
+                                          <a href="http://localhost:8000/page-add-customers.php">
                                               <i class="las la-minus"></i><span>Add Customers</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost:8000/backend/page-list-staffs.php">
+                                          <a href="http://localhost:8000/page-list-staffs.php">
                                               <i class="las la-minus"></i><span>Staffs</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost:8000/backend/page-add-staffs.php">
+                                          <a href="http://localhost:8000/page-add-staffs.php">
                                               <i class="las la-minus"></i><span>Add Staffs</span>
                                           </a>
                                   </li>
@@ -302,40 +208,39 @@ try {
                           </ul>
                       </li>
                       <li class=" ">
-                          <a href="#otherpage" class="collapsed" data-toggle="collapse" aria-expanded="false">
-                                <svg class="svg-icon" id="p-dash9" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="7" y="7" width="3" height="9"></rect><rect x="14" y="7" width="3" height="5"></rect>
-                              </svg>
-                              <span class="ml-4">Analytics</span>
-                              <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                  <polyline points="10 15 15 20 20 15"></polyline><path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
-                              </svg>
-                          </a>
-                          <ul id="otherpage" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
-                                  <li class="">
-                                          <a href="http://localhost:8000/analytics.php">
-                                              <i class="las la-minus"></i><span>Charts</span>
-                                          </a>
-                                  </li>
-                                  <li class="">
-                                          <a href="http://localhost:8000/analytics-report.php">
-                                              <i class="las la-minus"></i><span>Reports</span>
-                                          </a>
-                                  </li>
-                                  <li class="">
-                                          <a href="http://localhost:8000/sales-metrics.php">
-                                              <i class="las la-minus"></i><span>Category Metrics</span>
-                                          </a>
-                                  </li>
-                                  <li class="">
-                                          <a href="http://localhost:8000/inventory-metrics.php">
-                                              <i class="las la-minus"></i><span>Product Metrics</span>
-                                          </a>
-                                  </li>
-                                  
-                          </ul>
-                      </li>   
-                      
+                        <a href="#otherpage" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                              <svg class="svg-icon" id="p-dash9" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="7" y="7" width="3" height="9"></rect><rect x="14" y="7" width="3" height="5"></rect>
+                            </svg>
+                            <span class="ml-4">Analytics</span>
+                            <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="10 15 15 20 20 15"></polyline><path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
+                            </svg>
+                        </a>
+                        <ul id="otherpage" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                                <li class="">
+                                        <a href="http://localhost:8000/analytics.php">
+                                            <i class="las la-minus"></i><span>Charts</span>
+                                        </a>
+                                </li>
+                                <li class="">
+                                        <a href="http://localhost:8000/analytics-report.php">
+                                            <i class="las la-minus"></i><span>Reports</span>
+                                        </a>
+                                </li>
+                                <li class="">
+                                        <a href="http://localhost:8000/sales-metrics.php">
+                                            <i class="las la-minus"></i><span>Sales Metrics</span>
+                                        </a>
+                                </li>
+                                <li class="">
+                                        <a href="http://localhost:8000/inventory-metrics.php">
+                                            <i class="las la-minus"></i><span>Inventory Metrics</span>
+                                        </a>
+                                </li>
+                                
+                        </ul>
+                    </li>   
                   </ul>
               </nav>
               <div id="sidebar-bottom" class="position-relative sidebar-bottom">
@@ -355,6 +260,7 @@ try {
                       <a href="http://localhost:8000/dashboard.php" class="header-logo">
                           <img src="http://localhost:8000/logonew1.jpg" class="img-fluid rounded-normal" alt="logo">
                           <h5 class="logo-title ml-3">SalesPilot</h5>
+      
                       </a>
                   </div>
                   <div class="iq-search-bar device-search">
@@ -372,7 +278,11 @@ try {
                       <div class="collapse navbar-collapse" id="navbarSupportedContent">
                           <ul class="navbar-nav ml-auto navbar-list align-items-center">
                               <li class="nav-item nav-icon dropdown">
-                                  
+                                  <a href="#" class="search-toggle dropdown-toggle btn border add-btn"
+                                      id="dropdownMenuButton02" data-toggle="dropdown" aria-haspopup="true"
+                                      aria-expanded="false">
+                                      
+                                  </a>
                                   
                               </li>
                               <li>
@@ -483,7 +393,6 @@ try {
                                       <img src="http://localhost:8000/<?php echo htmlspecialchars($image_to_display); ?>" 
          alt="profile-img" class="rounded profile-img img-fluid avatar-70">
 
-
                                   </a>
                                   <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
                                       <div class="card shadow-none m-0">
@@ -537,201 +446,283 @@ try {
         </div>
     </div>
 </div>
-      </div>      <div class="content-page">
-        <div id="faqAccordion" class="container-fluid">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="iq-accordion career-style faq-style">
-                        <div class="card iq-accordion-block">
-                            <div class="active-faq clearfix" id="headingOne">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <a role="contentinfo" class="accordion-title" data-toggle="collapse"
-                                                data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                                <span><p style="font-weight: bold; text-decoration: underline;"><strong>Introduction</strong></p></span>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="accordion-details collapse show" id="collapseOne" aria-labelledby="headingOne"
-                                data-parent="#faqAccordion">
-                                <p class="mb-0">
-                                <p style="text-decoration: underline;"><strong>Welcome to SalesPilot!</strong> </p>
-                                <p>These Terms of Service govern your use of our web application for inventory management and sales analytics. By accessing or using SalesPilot, you agree to comply with and be bound by these Terms. If you do not agree to these Terms, please do not use our service. </p>
-                            </div>
-                        </div>
-                        <div class="card iq-accordion-block">
-                            <div class="active-faq clearfix" id="headingTwo">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
-                                                data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false"
-                                                aria-controls="collapseTwo"><span><p style="font-weight: bold; text-decoration: underline;"><strong> Use of the Service
-                                            </p></strong></span> </a></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="accordion-details collapse" id="collapseTwo" aria-labelledby="headingTwo"
-                                data-parent="#faqAccordion">
-                                <p class="mb-0">
-                                <p style="text-decoration: underline;"><strong>Eligibility</strong></p>
-                                <p>You must be at least 18 years old to use SalesPilot. By using our service, you represent and warrant that you meet this requirement.</p>
-                                    
-                                <p style="text-decoration: underline;"><strong>Account Registration</strong></p>
-                                <p>To access certain features of SalesPilot, you may be required to create an account.</p> 
-                                
-                                <p style="text-decoration: underline;"><strong>You agree to</strong></p>   
-                                <p>Provide accurate, current, and complete information during the registration process.</p>
-                                <p>Maintain and promptly update your account information.</p>
-                                <p>Keep your password secure and not disclose it to any third party.</p>
-                                <p>Accept responsibility for all activities that occur under your account.
-                                </p>
-                            </div>
-                        </div>
-                        <div class="card iq-accordion-block ">
-                            <div class="active-faq clearfix" id="headingThree">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
-                                                data-toggle="collapse" data-target="#collapseThree" aria-expanded="false"
-                                                aria-controls="collapseThree"><span><p style="font-weight: bold; text-decoration: underline;"><strong>User Responsibilities</p></strong> </span> </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="accordion-details collapse" id="collapseThree" aria-labelledby="headingThree"
-                                data-parent="#faqAccordion">
-                                <p class="mb-0">
-                                <p style="text-decoration: underline;"><strong>Compliance with Laws</strong></p>
-                                <p>You agree to use SalesPilot in compliance with all applicable laws and regulations. You are solely responsible for ensuring that your use of the service complies with all applicable laws, including data protection and privacy laws.</p>
-                                    
-                                <p style="text-decoration: underline;"><strong>Prohibited Activities</strong></p>
-                                <p style="text-decoration: underline;"><strong> You agree not to</strong></p>
-                                    
-                                <p>Use the service for any unlawful purposes.</p>
-                                <p>Engage in any activity that could harm or interfere with the operation of the service.</p>
-                                <p>Attempt to gain unauthorized access to any part of the service or its related systems or networks.</p>
-                                <p>Use the service to store, transmit, or distribute any illegal or unauthorized content.</p>
-                                <p>Use any automated means to access the service without our permission.
-                                </p>
-                            </div>
-                        </div>
-                        <div class="card iq-accordion-block ">
-                            <div class="active-faq clearfix" id="headingFour">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
-                                                data-toggle="collapse" data-target="#collapseFour" aria-expanded="false"
-                                                aria-controls="collapseFour"><span><p style="font-weight: bold; text-decoration: underline;"><strong> Intellectual Property</strong></p> </span> </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="accordion-details collapse" id="collapseFour" aria-labelledby="headingFour"
-                                data-parent="#faqAccordion">
-                                <p class="mb-0">
-                                <p style="text-decoration: underline;"><strong>Ownership</strong></p>
-                                <p>SalesPilot and its original content, features, and functionality are and will remain the exclusive property of SalesPilot and its licensors. The service is protected by copyright, trademark, and other laws of both the United States and foreign countries.</p>
-                                    
-                                <p style="text-decoration: underline;"><strong>License</strong></p>
-                                <p>We grant you a limited, non-exclusive, non-transferable, and revocable license to use the service for your internal business purposes, subject to these Terms.</p>
-                                    
-                                <p style="text-decoration: underline;"><strong>Termination</strong></p>
-                                <p>We may terminate or suspend your account and access to the service immediately, without prior notice or liability, if you breach these Terms. Upon termination, your right to use the service will immediately cease. If you wish to terminate your account, you may do so by contacting us.
-                                </p>
-                            </div>
-                        </div>
-                        <div class="card iq-accordion-block">
-                            <div class="active-faq clearfix" id="headingFive">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
-                                                data-toggle="collapse" data-target="#collapseFive" aria-expanded="false"
-                                                aria-controls="collapseFive"><span><p style="font-weight: bold; text-decoration: underline;"><strong> Limitation of Liability</strong></p> </span> </a></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="accordion-details collapse" id="collapseFive" aria-labelledby="headingFive"
-                                data-parent="#faqAccordion">
-                                <p class="mb-0">
-                                <p><strong>To the maximum extent permitted by law, </strong></p>
-                                <p>SalesPilot and its affiliates, directors, employees, agents, and partners shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses, resulting from:</p>
-                                    
-                                    <p>Your use or inability to use the service.</p>
-                                    <p>Any unauthorized access to or use of our servers and/or any personal information stored therein.</p>
-                                    <p>Any interruption or cessation of transmission to or from the service.</p>
-                                    <p>Any bugs, viruses, trojan horses, or the like that may be transmitted to or through the service by any third party.</p>
-                                    <p>Any errors or omissions in any content or for any loss or damage incurred as a result of the use of any content posted, emailed, transmitted, or otherwise made available through the service.</p>
-                                    <p style="text-decoration: underline;"><strong>Disclaimer of Warranties</strong></p>
-                                    <p>The service is provided on an "as is" and "as available" basis. SalesPilot makes no representations or warranties of any kind, express or implied, including but not limited to the implied warranties of merchantability, fitness for a particular purpose, and non-infringement.</p>
-                                    
-                                    <p style="text-decoration: underline;"><strong>Governing Law</strong></p>
-                                    <p>These Terms shall be governed and construed in accordance with the global laws governing application develpoment and usage, without regard to its conflict of law provisions.
-                                </p>
-                            </div>
-                        </div>
-                        <div class="card iq-accordion-block">
-                            <div class="active-faq clearfix" id="headingSix">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
-                                                data-toggle="collapse" data-target="#collapseSix" aria-expanded="false"
-                                                aria-controls="collapseSix"><span><p style="font-weight: bold; text-decoration: underline;"><strong> Changes to These Terms</strong></p> </span> </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="accordion-details collapse" id="collapseSix" aria-labelledby="headingSix"
-                                data-parent="#faqAccordion">
-                                <p class="mb-0">
-                                <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will provide at least 30 days' notice prior to any new terms taking effect. </p>
-                                <p>By continuing to access or use our service after those revisions become effective, you agree to be bound by the revised terms.</p>
-                                    
-                                <p style="text-decoration: underline;"><strong>Contact Us</strong></p>
-                                <p>If you have any questions about these Terms, please contact us at
-                                </p>
-                            </div>
-                        </div>
+
+
+
+        </div>      <div class="content-page">
+<div class="container-fluid">
+<form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="POST">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card card-block card-stretch card-height print rounded">
+                <div class="card-header d-flex justify-content-between bg-primary header-invoice">
+                    <div class="iq-header-title">
+                        <h4 class="card-title mb-0">Invoice#</h4>
+                        <input type="text" class="form-control" name="invoice_number" placeholder="Enter invoice no" required>
+                    </div>
+                    <div class="invoice-btn">
+                        <a href="pages-invoice.php" class="btn btn-primary-dark mr-2">
+                            <i class="las la-print"></i> View Invoice
+                        </a>
+                        
                     </div>
                 </div>
-            </div>
-        </div>
-      </div>
-    </div>
-    <!-- Wrapper End-->
-    <footer class="iq-footer">
-            <div class="container-fluid">
-            <div class="card">
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-lg-6">
-                            <ul class="list-inline mb-0">
-                                <li class="list-inline-item"><a href="http://localhost:8000/privacy-policy.php">Privacy Policy</a></li>
-                                <li class="list-inline-item"><a href="http://localhost:8000/terms-of-service.php">Terms of Use</a></li>
-                                <li class="list-inline-item"><a href="http://localhost:8000/subscription.php">Subscriptions</a></li>
-                                <li class="list-inline-item"><a href="http://localhost:8000/pay.php">Pay Now</a></li>
-                                <li class="list-inline-item"><a href="http://localhost:8000/help.html">Help</a></li>
-                            </ul>
-                        </div>
-                        <div class="col-lg-6 text-right">
-                            <span class="mr-1"><script>document.write(new Date().getFullYear())</script>©</span> <a href="http://localhost:8000/dashboard.php" class="">SalesPilot</a>.
+                        <div class="col-sm-12">
+                            <img src="http://localhost:8000/logonew1.jpg" class="logo-invoice img-fluid mb-3" alt="Logo">
+                            <h5 class="mb-0">Hello, <?php echo $username; ?></h5>
+                            <input type="text" class="form-control" name="customer_name" placeholder="Customer Name" required>
+                            <textarea name="invoice_description" class="form-control mt-2" placeholder="Invoice Details" required></textarea>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="table-responsive-sm mt-3">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Order Date</th>
+                                            <th scope="col">Order Status</th>
+                                            <th scope="col">Order ID</th>
+                                            <th scope="col">Delivery Address</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><input type="date" class="form-control" name="order_date" required></td>
+                                            <td>
+                                                <select name="order_status" class="form-control" required>
+                                                    <option value="unpaid" selected>Unpaid</option>
+                                                    <option value="paid">Paid</option>
+                                                </select>
+                                            </td>
+                                            <td><input type="text" class="form-control" name="order_id" placeholder="Enter order id number" required></td>
+                                            
+                                            <td>
+                                                <textarea name="delivery_address" class="form-control" placeholder="Enter shipping address" required></textarea>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <h5 class="mb-3">Order Summary</h5>
+                            <div class="table-responsive-sm">
+                            <table class="table" id="invoice-items">
+    <thead>
+        <tr>
+            <th class="text-center" scope="col">#</th>
+            <th scope="col">Item</th>
+            <th class="text-center" scope="col">Quantity</th>
+            <th class="text-center" scope="col">Price ($)</th>
+            <th class="text-center" scope="col">Total ($)</th>
+        </tr>
+    </thead>
+    <tbody id="invoice-items-body">
+        <tr>
+            <th class="text-center" scope="row">1</th>
+            <td><input type="text" class="form-control" name="item_name[]" placeholder="Product or Service" required></td>
+            <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="1" required oninput="calculateSubtotal()"></td>
+            <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="0.00" required oninput="calculateSubtotal()"></td>
+            <td class="text-center"><input type="text" class="form-control" name="total[]" value="0.00" readonly></td>
+        </tr>
+    </tbody>
+</table>
+<button type="button" class="btn btn-primary" onclick="addRow()">Add Row</button>
+
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4 mb-3">
+                        <div class="col-sm-12">
+                            <div class="or-detail rounded">
+                                <div class="p-3">
+                                    <h5 class="mb-3">Order Details</h5>
+                                    <div class="mb-2">
+                                        <label for="mode_of_payment">Payment Mode</label>
+                                        <input type="text" id="mode_of_payment" name="mode_of_payment" class="form-control" placeholder="MasterCard" required>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <label for="due_date">Due Date</label>
+                                        <input type="date" id="due_date" name="due_date" class="form-control" required>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label for="subtotal">Sub Total</label>
+                                        <input type="number" step="0.01" id="subtotal" name="subtotal" class="form-control" value="0.00" readonly>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label for="discount">Discount (%)</label>
+                                        <input type="number" id="discount" name="discount" class="form-control" value="0" oninput="calculateSubtotal()">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label for="total-amount">Total Amount ($)</label>
+                                        <span id="total-amount" class="font-weight-bold">0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit Invoice</button>
                 </div>
             </div>
         </div>
-    </footer>
-    <!-- Backend Bundle JavaScript -->
-    <script src="http://localhost:8000/assets/js/backend-bundle.min.js"></script>
-    
-    <!-- Table Treeview JavaScript -->
-    <script src="http://localhost:8000/assets/js/table-treeview.js"></script>
-    
-    <!-- app JavaScript -->
-    <script src="http://localhost:8000/assets/js/app.js"></script>
+    </div>
+</form>
+<script>
+function calculateSubtotal() {
+    const itemRows = document.querySelectorAll('#invoice-items-body tr');
+    let subtotal = 0;
+
+    itemRows.forEach(row => {
+        const quantity = parseFloat(row.querySelector('input[name="quantity[]"]').value) || 0;
+        const price = parseFloat(row.querySelector('input[name="price[]"]').value) || 0;
+        const total = (quantity * price).toFixed(2);
+        subtotal += parseFloat(total);
+        
+        // Update the total for the current row
+        row.querySelector('input[name="total[]"]').value = total;
+    });
+
+    // Update the subtotal input field
+    document.getElementById('subtotal').value = subtotal.toFixed(2);
+
+    // Recalculate the total amount after updating the subtotal
+    calculateTotal(subtotal);
+}
+
+function calculateTotal(subtotal) {
+    const discount = parseFloat(document.getElementById('discount').value) || 0;
+
+    const discountAmount = (subtotal * (discount / 100));
+    const totalAmount = (subtotal - discountAmount).toFixed(2);
+
+    // Update the total amount display
+    document.getElementById('total-amount').textContent = totalAmount;
+}
+
+function addRow() {
+    const tableBody = document.getElementById('invoice-items-body');
+    const rowCount = tableBody.children.length + 1;
+
+    const newRow = document.createElement('tr');
+    newRow.innerHTML = `
+        <th class="text-center" scope="row">${rowCount}</th>
+        <td><input type="text" class="form-control" name="item_name[]" placeholder="Product or Service" required></td>
+        <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="1" required oninput="calculateSubtotal()"></td>
+        <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="0.00" required oninput="calculateSubtotal()"></td>
+        <td class="text-center"><input type="text" class="form-control" name="total[]" value="0.00" readonly></td>
+    `;
+
+    tableBody.appendChild(newRow);
+}
+</script>
+
+
+
+</div>
+<!-- Wrapper End-->
+<footer class="iq-footer">
+    <div class="container-fluid">
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-lg-6">
+                    <ul class="list-inline mb-0">
+                        <li class="list-inline-item"><a href="http://localhost:8000/privacy-policy.php">Privacy Policy</a></li>
+                        <li class="list-inline-item"><a href="http://localhost:8000/terms-of-service.php">Terms of Use</a></li>
+                        <li class="list-inline-item"><a href="http://localhost:8000/subscription.php">Subscriptions</a></li>
+                        <li class="list-inline-item"><a href="http://localhost:8000/pay.php">Pay Now</a></li>
+                        <li class="list-inline-item"><a href="http://localhost:8000/help.html">Help</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-6 text-right">
+                    <span class="mr-1"><script>document.write(new Date().getFullYear())</script>©</span> <a href="http://localhost:8000/dashboard.php" class="">SalesPilot</a>.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</footer>
+<!-- Backend Bundle JavaScript -->
+<script src="http://localhost:8000/assets/js/backend-bundle.min.js"></script>
+
+<!-- Table Treeview JavaScript -->
+<script src="http://localhost:8000/assets/js/table-treeview.js"></script>
+
+<!-- app JavaScript -->
+<script src="http://localhost:8000/assets/js/app.js"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
     <script>
+let rowCount = 1; // Starting count of rows
+
+function calculateRowTotal(row) {
+    const quantity = parseFloat(row.querySelector('input[name="quantity[]"]').value) || 0;
+    const price = parseFloat(row.querySelector('input[name="price[]"]').value) || 0;
+    const total = (quantity * price).toFixed(2);
+    row.querySelector('input[name="total[]"]').value = total;
+    return parseFloat(total);
+}
+
+function calculateSubtotal() {
+    const itemRows = document.querySelectorAll('#invoice-items-body tr');
+    let subtotal = 0;
+
+    itemRows.forEach(row => {
+        subtotal += calculateRowTotal(row);
+    });
+
+    document.getElementById('subtotal').value = subtotal.toFixed(2);
+    calculateTotal(subtotal);
+}
+
+function calculateTotal(subtotal) {
+    const discount = parseFloat(document.getElementById('discount').value) || 0;
+    const discountAmount = (subtotal * (discount / 100));
+    const totalAmount = (subtotal - discountAmount).toFixed(2);
+
+    document.getElementById('total-amount').textContent = totalAmount;
+}
+
+function addRow() {
+    const tableBody = document.getElementById('invoice-items-body');
+    rowCount++;
+
+    const newRow = document.createElement('tr');
+    newRow.innerHTML = `
+        <th class="text-center" scope="row">${rowCount}</th>
+        <td><input type="text" class="form-control" name="item_name[]" placeholder="Product or Service" required></td>
+        <td class="text-center"><input type="number" class="form-control" name="quantity[]" value="1" required oninput="calculateSubtotal()"></td>
+        <td class="text-center"><input type="number" step="0.01" class="form-control" name="price[]" value="0.00" required oninput="calculateSubtotal()"></td>
+        <td class="text-center"><input type="text" class="form-control" name="total[]" value="0.00" readonly></td>
+    `;
+
+    // Attach input event listeners for quantity and price to recalculate on input
+    const quantityInput = newRow.querySelector('input[name="quantity[]"]');
+    const priceInput = newRow.querySelector('input[name="price[]"]');
+
+    quantityInput.addEventListener('input', () => {
+        calculateRowTotal(newRow);
+        calculateSubtotal(); // Update overall subtotal
+    });
+
+    priceInput.addEventListener('input', () => {
+        calculateRowTotal(newRow);
+        calculateSubtotal(); // Update overall subtotal
+    });
+
+    tableBody.appendChild(newRow);
+}
+</script>
+
+<script>
 document.getElementById('createButton').addEventListener('click', function() {
     // Optional: Validate input or perform any additional checks here
     
@@ -739,5 +730,5 @@ document.getElementById('createButton').addEventListener('click', function() {
     window.location.href = 'invoice-form.php';
 });
 </script>
-  </body>
- </html>
+</body>
+</html>

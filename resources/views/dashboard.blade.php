@@ -1,118 +1,22 @@
-<?php
-session_start([
-    'cookie_lifetime' => 86400,
-    'cookie_secure'   => true,
-    'cookie_httponly' => true,
-    'use_strict_mode' => true,
-    'sid_length'      => 48,
-]);
-
-include('config.php'); // Includes database connection
-
-try {
-    // Check if username is set in session
-    if (!isset($_SESSION["username"])) {
-        throw new Exception("No username found in session.");
-    }
-
-    $username = htmlspecialchars($_SESSION["username"]);
-
-    // Retrieve user information from the users table
-    $user_query = "SELECT username, email, date FROM users WHERE username = :username";
-    $stmt = $connection->prepare($user_query);
-    $stmt->bindParam(':username', $username);
-    $stmt->execute();
-    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$user_info) {
-        throw new Exception("User not found.");
-    }
-
-    // Retrieve user email and registration date
-    $email = htmlspecialchars($user_info['email']);
-    $date = htmlspecialchars($user_info['date']);
-} catch (PDOException $e) {
-    error_log("PDO Error: " . $e->getMessage());
-    exit("Database Error: " . $e->getMessage());
-} catch (Exception $e) {
-    error_log("Error: " . $e->getMessage());
-    exit("Error: " . $e->getMessage());
-}
-
-try {
-    // Fetch inventory notifications with product images
-    $inventoryQuery = $connection->prepare("
-        SELECT i.product_name, i.available_stock, i.inventory_qty, i.sales_qty, p.image_path
-        FROM inventory i
-        JOIN products p ON i.product_id = p.id
-        WHERE i.available_stock < :low_stock OR i.available_stock > :high_stock
-        ORDER BY i.last_updated DESC
-    ");
-    $inventoryQuery->execute([
-        ':low_stock' => 10,
-        ':high_stock' => 1000,
-    ]);
-    $inventoryNotifications = $inventoryQuery->fetchAll();
-
-    // Fetch reports notifications with product images
-    $reportsQuery = $connection->prepare("
-        SELECT JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_name')) AS product_name, 
-               JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) AS revenue,
-               p.image_path
-        FROM reports r
-        JOIN products p ON JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.product_id')) = p.id
-        WHERE JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) > :high_revenue 
-           OR JSON_UNQUOTE(JSON_EXTRACT(revenue_by_product, '$.revenue')) < :low_revenue
-        ORDER BY r.report_date DESC
-    ");
-    $reportsQuery->execute([
-        ':high_revenue' => 10000,
-        ':low_revenue' => 1000,
-    ]);
-    $reportsNotifications = $reportsQuery->fetchAll();
-} catch (PDOException $e) {
-    // Handle any errors during database queries
-    echo "Error: " . $e->getMessage();
-}
-
-try {
-    // Prepare and execute the query to fetch user information from the users table
-    $user_query = "SELECT id, username, date, email, phone, location, is_active, role, user_image FROM users WHERE username = :username";
-    $stmt = $connection->prepare($user_query);
-    $stmt->bindParam(':username', $username);
-    $stmt->execute();
-    
-    // Fetch user data
-    $user_info = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($user_info) {
-        // Retrieve user details and sanitize output
-        $email = htmlspecialchars($user_info['email']);
-        $date = date('d F, Y', strtotime($user_info['date']));
-        $location = htmlspecialchars($user_info['location']);
-        $user_id = htmlspecialchars($user_info['id']);
-        
-        // Check if a user image exists, use default if not
-        $existing_image = htmlspecialchars($user_info['user_image']);
-        $image_to_display = !empty($existing_image) ? $existing_image : 'uploads/user/default.png';
-
-    }
-} catch (PDOException $e) {
-    // Handle database errors
-    exit("Database error: " . $e->getMessage());
-} catch (Exception $e) {
-    // Handle user not found or other exceptions
-    exit("Error: " . $e->getMessage());
-}
-
-?>
-
 <!doctype html>
 <html lang="en">
   <head>
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TXR1WFJ4GP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-TXR1WFJ4GP');
+</script>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <title>Terms of Service</title>
+    
+    <meta content="" name="Boost your business efficiency with SalesPilot – the ultimate sales management app. Track leads, manage clients, and increase revenue effortlessly with our user-friendly platform.">
+  <meta content="" name="Sales productivity tools, Sales and Client management, Business efficiency tools">
+
+      <title>Dashboard</title>
       
       <!-- Favicon -->
       <link rel="shortcut icon" href="http://localhost:8000/assets/images/favicon-blue.ico" />
@@ -134,7 +38,7 @@ try {
       <div class="iq-sidebar  sidebar-default ">
           <div class="iq-sidebar-logo d-flex align-items-center justify-content-between">
               <a href="http://localhost:8000/dashboard.php" class="header-logo">
-                  <img src="http://localhost:8000/logonew1.jpg" class="img-fluid rounded-normal light-logo" alt="logo"><h5 class="logo-title light-logo ml-3">SalesPilot</h5>
+                  <img src="http://localhost:8000/logonew1.jpg" class="img-fluid rounded-normal light-logo" alt="logo"><h5 class="logo-title light-logo ml-3">Sales Pilot</h5>
               </a>
               <div class="iq-menu-bt-sidebar ml-0">
                   <i class="las la-bars wrapper-menu"></i>
@@ -143,7 +47,7 @@ try {
           <div class="data-scrollbar" data-scroll="1">
               <nav class="iq-sidebar-menu">
                   <ul id="iq-sidebar-toggle" class="iq-menu">
-                      <li class="">
+                      <li class="active">
                           <a href="http://localhost:8000/dashboard.php" class="svg-icon">                        
                               <svg  class="svg-icon" id="p-dash1" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                   <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line>
@@ -190,7 +94,7 @@ try {
                                               <i class="las la-minus"></i><span>List Category</span>
                                           </a>
                                   </li>
-                             
+                                  
                           </ul>
                       </li>
                       <li class=" ">
@@ -229,12 +133,12 @@ try {
                           <ul id="purchase" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                   <li class="">
                                           <a href="http://localhost:8000/page-list-expense.php">
-                                              <i class="las la-minus"></i><span>List Expenses</span>
+                                              <i class="las la-minus"></i><span>List Expense</span>
                                           </a>
                                   </li>
                                   <li class="">
                                           <a href="http://localhost:8000/page-add-expense.php">
-                                              <i class="las la-minus"></i><span>Add Expenses</span>
+                                              <i class="las la-minus"></i><span>Add Expense</span>
                                           </a>
                                   </li>
                           </ul>
@@ -255,7 +159,7 @@ try {
                                               <i class="las la-minus"></i><span>List Inventory</span>
                                           </a>
                                   </li>
-                               
+                              
                           </ul>
                       </li>
                       <li class=" ">
@@ -275,17 +179,17 @@ try {
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost:8000/backend/page-add-customers.php">
+                                          <a href="http://localhost:8000/page-add-customers.php">
                                               <i class="las la-minus"></i><span>Add Customers</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost:8000/backend/page-list-staffs.php">
+                                          <a href="http://localhost:8000/page-list-staffs.php">
                                               <i class="las la-minus"></i><span>Staffs</span>
                                           </a>
                                   </li>
                                   <li class="">
-                                          <a href="http://localhost:8000/backend/page-add-staffs.php">
+                                          <a href="http://localhost:8000/page-add-staffs.php">
                                               <i class="las la-minus"></i><span>Add Staffs</span>
                                           </a>
                                   </li>
@@ -302,49 +206,39 @@ try {
                           </ul>
                       </li>
                       <li class=" ">
-                          <a href="#otherpage" class="collapsed" data-toggle="collapse" aria-expanded="false">
-                                <svg class="svg-icon" id="p-dash9" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="7" y="7" width="3" height="9"></rect><rect x="14" y="7" width="3" height="5"></rect>
-                              </svg>
-                              <span class="ml-4">Analytics</span>
-                              <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                  <polyline points="10 15 15 20 20 15"></polyline><path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
-                              </svg>
-                          </a>
-                          <ul id="otherpage" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
-                                  <li class="">
-                                          <a href="http://localhost:8000/analytics.php">
-                                              <i class="las la-minus"></i><span>Charts</span>
-                                          </a>
-                                  </li>
-                                  <li class="">
-                                          <a href="http://localhost:8000/analytics-report.php">
-                                              <i class="las la-minus"></i><span>Reports</span>
-                                          </a>
-                                  </li>
-                                  <li class="">
-                                          <a href="http://localhost:8000/sales-metrics.php">
-                                              <i class="las la-minus"></i><span>Category Metrics</span>
-                                          </a>
-                                  </li>
-                                  <li class="">
-                                          <a href="http://localhost:8000/inventory-metrics.php">
-                                              <i class="las la-minus"></i><span>Product Metrics</span>
-                                          </a>
-                                  </li>
-                                  
-                          </ul>
-                      </li>   
-                      
-                  </ul>
-              </nav>
-              <div id="sidebar-bottom" class="position-relative sidebar-bottom">
-                  <div class="card border-none">
-                      <div class="card-body p-0">
-                          
-                      </div>
-                  </div>
-              </div>
+                        <a href="#otherpage" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                              <svg class="svg-icon" id="p-dash9" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="7" y="7" width="3" height="9"></rect><rect x="14" y="7" width="3" height="5"></rect>
+                            </svg>
+                            <span class="ml-4">Analytics</span>
+                            <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="10 15 15 20 20 15"></polyline><path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
+                            </svg>
+                        </a>
+                        <ul id="otherpage" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                                <li class="">
+                                        <a href="http://localhost:8000/analytics.php">
+                                            <i class="las la-minus"></i><span>Charts</span>
+                                        </a>
+                                </li>
+                                <li class="">
+                                        <a href="http://localhost:8000/analytics-report.php">
+                                            <i class="las la-minus"></i><span>Reports</span>
+                                        </a>
+                                </li>
+                                <li class="">
+                                        <a href="http://localhost:8000/sales-metrics.php">
+                                            <i class="las la-minus"></i><span>Category Metrics</span>
+                                        </a>
+                                </li>
+                                <li class="">
+                                        <a href="http://localhost:8000/inventory-metrics.php">
+                                            <i class="las la-minus"></i><span>Product Metrics</span>
+                                        </a>
+                                </li>
+                                
+                        </ul>
+                    </li>   
               <div class="p-3"></div>
           </div>
           </div>      <div class="iq-top-navbar">
@@ -355,12 +249,13 @@ try {
                       <a href="http://localhost:8000/dashboard.php" class="header-logo">
                           <img src="http://localhost:8000/logonew1.jpg" class="img-fluid rounded-normal" alt="logo">
                           <h5 class="logo-title ml-3">SalesPilot</h5>
+      
                       </a>
                   </div>
                   <div class="iq-search-bar device-search">
                       <form action="#" class="searchbox">
                           <a class="search-link" href="#"><i class="ri-search-line"></i></a>
-                          <input type="text" class="text search-input" placeholder="Search here...">
+                          <input type="text" class="text search-input" placeholder="Search here">
                       </form>
                   </div>
                   <div class="d-flex align-items-center">
@@ -371,14 +266,15 @@ try {
                       </button>
                       <div class="collapse navbar-collapse" id="navbarSupportedContent">
                           <ul class="navbar-nav ml-auto navbar-list align-items-center">
-                              <li class="nav-item nav-icon dropdown">
-                                  
-                                  
-                              </li>
+                              
                               <li>
                                   <a href="#" class="btn border add-btn shadow-none mx-2 d-none d-md-block"
                                       data-toggle="modal" data-target="#new-order"><i class="las la-plus mr-2"></i>New
                                       Invoice</a>
+                              </li>
+                              <li>
+                                  <a href="activate_trial.php" class="btn border add-btn shadow-none mx-2 d-none d-md-block"
+                                       data-target="#new-order"><i class="las la-plus mr-2"></i>Get Free Trial</a>
                               </li>
                               <li class="nav-item nav-icon search-content">
                                   <a href="#" class="search-toggle rounded" id="dropdownSearch" data-toggle="dropdown"
@@ -389,7 +285,7 @@ try {
                                       <form action="#" class="searchbox p-2">
                                           <div class="form-group mb-0 position-relative">
                                               <input type="text" class="text search-input font-size-12"
-                                                  placeholder="type here to search...">
+                                                  placeholder="type here to search">
                                               <a href="#" class="search-link"><i class="las la-search"></i></a>
                                           </div>
                                       </form>
@@ -467,7 +363,7 @@ try {
                         <?php endforeach; ?>
                     <?php else: ?>
                         <p class="text-center">No reports notifications available.</p>
-                    <?php endif; ?>
+                    <?php endif; ?>  
                 </div>
                 <a class="right-ic btn btn-primary btn-block position-relative p-2" href="page-list-inventory.php" role="button">
                     View All
@@ -478,27 +374,37 @@ try {
 </li>
 
                               <li class="nav-item nav-icon dropdown caption-content">
-                                  <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <img src="http://localhost:8000/<?php echo htmlspecialchars($image_to_display); ?>" 
+                                
+                              <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
+   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <!-- Hidden fields for user ID and existing image -->
+    <input type="hidden" name="id" value="<?php echo htmlspecialchars($user_id); ?>">
+    <input type="hidden" name="existing_image" value="<?php echo htmlspecialchars($existing_image); ?>">
+
+    <!-- Display the user image or fallback to default -->
+    <img src="http://localhost:8000/<?php echo htmlspecialchars($image_to_display); ?>" 
          alt="profile-img" class="rounded profile-img img-fluid avatar-70">
+</a>
 
 
-                                  </a>
+
                                   <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
                                       <div class="card shadow-none m-0">
                                           <div class="card-body p-0 text-center">
-                                              <div class="media-body profile-detail text-center">
-                                                  <img src="http://localhost:8000/assets/images/page-img/profile-bg.jpg" alt="profile-bg"
-                                                      class="rounded-top img-fluid mb-4">
-                                                      <img src="http://localhost:8000/<?php echo htmlspecialchars($image_to_display); ?>" 
-         alt="profile-img" class="rounded profile-img img-fluid avatar-70">
+                                          <div class="media-body profile-detail text-center">
+                                                    <!-- Background Image -->
+                                                    <img src="http://localhost:8000/assets/images/page-img/profile-bg.jpg" alt="profile-bg"
+                                                        class="rounded-top img-fluid mb-4">
+                                                    
+                                                        <img src="http://localhost:8000/<?php echo htmlspecialchars($image_to_display); ?>" 
+                                                        alt="profile-img" class="rounded profile-img img-fluid avatar-70">
+
+                                                </div>
 
 
-                                              </div>
                                               <div class="p-3">
-                                                <h5 class="mb-1"><?php echo $email; ?></h5>
-                                                <p class="mb-0">Since <?php echo $date; ?></p>
+                                                  <h5 class="mb-1"><?php echo $email; ?></h5>
+                                                  <p class="mb-0">Since<?php echo $date; ?></p>
                                                   <div class="d-flex align-items-center justify-content-center mt-3">
                                                       <a href="http://localhost:8000/user-profile-edit.php" class="btn border mr-2">Profile</a>
                                                       <a href="logout.php" class="btn border">Sign Out</a>
@@ -538,166 +444,266 @@ try {
     </div>
 </div>
       </div>      <div class="content-page">
-        <div id="faqAccordion" class="container-fluid">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="iq-accordion career-style faq-style">
-                        <div class="card iq-accordion-block">
-                            <div class="active-faq clearfix" id="headingOne">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <a role="contentinfo" class="accordion-title" data-toggle="collapse"
-                                                data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                                <span><p style="font-weight: bold; text-decoration: underline;"><strong>Introduction</strong></p></span>
-                                            </a>
-                                        </div>
+     <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="card card-transparent card-block card-stretch card-height border-none">
+                    <div class="card-body p-0 mt-lg-2 mt-0">
+                        <h3 class="mb-3"><?php echo $greeting; ?></h3>
+                        <p class="mb-0 mr-4">Your dashboard delivers KPI for sales and inventory management, highlighting sales & income, net profit, and expenditures, which comprises of costs and expenses.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <div class="row">
+                    <div class="col-lg-4 col-md-4">
+                        <div class="card card-block card-stretch card-height">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-4 card-total-sale">
+                                    <div class="icon iq-icon-box-2 bg-info-light">
+                                        <img src="http://localhost:8000/assets/images/product/1.png" class="img-fluid" alt="image">
                                     </div>
+                                    <div>
+                                    <p class="mb-2">Revenue</p>
+                                    <h4>$<?php echo $total_revenue; ?></h4>
+                                    </div>
+                                </div>                                
+                                <div class="iq-progress-bar mt-2">
+                                    <span class="bg-info iq-progress progress-1" data-percent="85">
+                                    </span>
                                 </div>
-                            </div>
-                            <div class="accordion-details collapse show" id="collapseOne" aria-labelledby="headingOne"
-                                data-parent="#faqAccordion">
-                                <p class="mb-0">
-                                <p style="text-decoration: underline;"><strong>Welcome to SalesPilot!</strong> </p>
-                                <p>These Terms of Service govern your use of our web application for inventory management and sales analytics. By accessing or using SalesPilot, you agree to comply with and be bound by these Terms. If you do not agree to these Terms, please do not use our service. </p>
                             </div>
                         </div>
-                        <div class="card iq-accordion-block">
-                            <div class="active-faq clearfix" id="headingTwo">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
-                                                data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false"
-                                                aria-controls="collapseTwo"><span><p style="font-weight: bold; text-decoration: underline;"><strong> Use of the Service
-                                            </p></strong></span> </a></div>
+                    </div>
+                    <div class="col-lg-4 col-md-4">
+                        <div class="card card-block card-stretch card-height">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-4 card-total-sale">
+                                    <div class="icon iq-icon-box-2 bg-danger-light">
+                                        <img src="http://localhost:8000/assets/images/product/2.png" class="img-fluid" alt="image">
+                                    </div>
+                                    <div>
+                                    <p class="mb-2">Total Cost</p>
+                                    <h4>$<?php echo $total_cost; ?></h4>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="accordion-details collapse" id="collapseTwo" aria-labelledby="headingTwo"
-                                data-parent="#faqAccordion">
-                                <p class="mb-0">
-                                <p style="text-decoration: underline;"><strong>Eligibility</strong></p>
-                                <p>You must be at least 18 years old to use SalesPilot. By using our service, you represent and warrant that you meet this requirement.</p>
-                                    
-                                <p style="text-decoration: underline;"><strong>Account Registration</strong></p>
-                                <p>To access certain features of SalesPilot, you may be required to create an account.</p> 
-                                
-                                <p style="text-decoration: underline;"><strong>You agree to</strong></p>   
-                                <p>Provide accurate, current, and complete information during the registration process.</p>
-                                <p>Maintain and promptly update your account information.</p>
-                                <p>Keep your password secure and not disclose it to any third party.</p>
-                                <p>Accept responsibility for all activities that occur under your account.
-                                </p>
+                                <div class="iq-progress-bar mt-2">
+                                    <span class="bg-danger iq-progress progress-1" data-percent="70">
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                        <div class="card iq-accordion-block ">
-                            <div class="active-faq clearfix" id="headingThree">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
-                                                data-toggle="collapse" data-target="#collapseThree" aria-expanded="false"
-                                                aria-controls="collapseThree"><span><p style="font-weight: bold; text-decoration: underline;"><strong>User Responsibilities</p></strong> </span> </a>
-                                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-4">
+                        <div class="card card-block card-stretch card-height">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-4 card-total-sale">
+                                    <div class="icon iq-icon-box-2 bg-success-light">
+                                        <img src="http://localhost:8000/assets/images/product/3.png" class="img-fluid" alt="image">
+                                    </div>
+                                    <div>
+                                    <p class="mb-2">Profit</p>
+                                    <h4><?php echo $total_profit; ?></h4>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="accordion-details collapse" id="collapseThree" aria-labelledby="headingThree"
-                                data-parent="#faqAccordion">
-                                <p class="mb-0">
-                                <p style="text-decoration: underline;"><strong>Compliance with Laws</strong></p>
-                                <p>You agree to use SalesPilot in compliance with all applicable laws and regulations. You are solely responsible for ensuring that your use of the service complies with all applicable laws, including data protection and privacy laws.</p>
-                                    
-                                <p style="text-decoration: underline;"><strong>Prohibited Activities</strong></p>
-                                <p style="text-decoration: underline;"><strong> You agree not to</strong></p>
-                                    
-                                <p>Use the service for any unlawful purposes.</p>
-                                <p>Engage in any activity that could harm or interfere with the operation of the service.</p>
-                                <p>Attempt to gain unauthorized access to any part of the service or its related systems or networks.</p>
-                                <p>Use the service to store, transmit, or distribute any illegal or unauthorized content.</p>
-                                <p>Use any automated means to access the service without our permission.
-                                </p>
-                            </div>
-                        </div>
-                        <div class="card iq-accordion-block ">
-                            <div class="active-faq clearfix" id="headingFour">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
-                                                data-toggle="collapse" data-target="#collapseFour" aria-expanded="false"
-                                                aria-controls="collapseFour"><span><p style="font-weight: bold; text-decoration: underline;"><strong> Intellectual Property</strong></p> </span> </a>
-                                        </div>
-                                    </div>
+                                <div class="iq-progress-bar mt-2">
+                                    <span class="bg-success iq-progress progress-1" data-percent="75">
+                                    </span>
                                 </div>
-                            </div>
-                            <div class="accordion-details collapse" id="collapseFour" aria-labelledby="headingFour"
-                                data-parent="#faqAccordion">
-                                <p class="mb-0">
-                                <p style="text-decoration: underline;"><strong>Ownership</strong></p>
-                                <p>SalesPilot and its original content, features, and functionality are and will remain the exclusive property of SalesPilot and its licensors. The service is protected by copyright, trademark, and other laws of both the United States and foreign countries.</p>
-                                    
-                                <p style="text-decoration: underline;"><strong>License</strong></p>
-                                <p>We grant you a limited, non-exclusive, non-transferable, and revocable license to use the service for your internal business purposes, subject to these Terms.</p>
-                                    
-                                <p style="text-decoration: underline;"><strong>Termination</strong></p>
-                                <p>We may terminate or suspend your account and access to the service immediately, without prior notice or liability, if you breach these Terms. Upon termination, your right to use the service will immediately cease. If you wish to terminate your account, you may do so by contacting us.
-                                </p>
-                            </div>
-                        </div>
-                        <div class="card iq-accordion-block">
-                            <div class="active-faq clearfix" id="headingFive">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
-                                                data-toggle="collapse" data-target="#collapseFive" aria-expanded="false"
-                                                aria-controls="collapseFive"><span><p style="font-weight: bold; text-decoration: underline;"><strong> Limitation of Liability</strong></p> </span> </a></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="accordion-details collapse" id="collapseFive" aria-labelledby="headingFive"
-                                data-parent="#faqAccordion">
-                                <p class="mb-0">
-                                <p><strong>To the maximum extent permitted by law, </strong></p>
-                                <p>SalesPilot and its affiliates, directors, employees, agents, and partners shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses, resulting from:</p>
-                                    
-                                    <p>Your use or inability to use the service.</p>
-                                    <p>Any unauthorized access to or use of our servers and/or any personal information stored therein.</p>
-                                    <p>Any interruption or cessation of transmission to or from the service.</p>
-                                    <p>Any bugs, viruses, trojan horses, or the like that may be transmitted to or through the service by any third party.</p>
-                                    <p>Any errors or omissions in any content or for any loss or damage incurred as a result of the use of any content posted, emailed, transmitted, or otherwise made available through the service.</p>
-                                    <p style="text-decoration: underline;"><strong>Disclaimer of Warranties</strong></p>
-                                    <p>The service is provided on an "as is" and "as available" basis. SalesPilot makes no representations or warranties of any kind, express or implied, including but not limited to the implied warranties of merchantability, fitness for a particular purpose, and non-infringement.</p>
-                                    
-                                    <p style="text-decoration: underline;"><strong>Governing Law</strong></p>
-                                    <p>These Terms shall be governed and construed in accordance with the global laws governing application develpoment and usage, without regard to its conflict of law provisions.
-                                </p>
-                            </div>
-                        </div>
-                        <div class="card iq-accordion-block">
-                            <div class="active-faq clearfix" id="headingSix">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div class="col-sm-12"><a role="contentinfo" class="accordion-title collapsed"
-                                                data-toggle="collapse" data-target="#collapseSix" aria-expanded="false"
-                                                aria-controls="collapseSix"><span><p style="font-weight: bold; text-decoration: underline;"><strong> Changes to These Terms</strong></p> </span> </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="accordion-details collapse" id="collapseSix" aria-labelledby="headingSix"
-                                data-parent="#faqAccordion">
-                                <p class="mb-0">
-                                <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will provide at least 30 days' notice prior to any new terms taking effect. </p>
-                                <p>By continuing to access or use our service after those revisions become effective, you agree to be bound by the revised terms.</p>
-                                    
-                                <p style="text-decoration: underline;"><strong>Contact Us</strong></p>
-                                <p>If you have any questions about these Terms, please contact us at
-                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <div class="col-lg-6">
+                <div class="card card-block card-stretch card-height">
+                    <div class="card-header d-flex justify-content-between">
+                        <div class="header-title">
+                            <h4 class="card-title">Sales</h4>
+                           
+                        </div>                        
+                        <div class="card-header-toolbar d-flex align-items-center">
+    
+</div>
+
+                    </div>                    
+                    <div class="card-body">
+                    <h4>Top Earners</h4>
+                        <div id="am-layeredcolumn-chart" style="height: 400px;"></div>
+                    </div> 
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card card-block card-stretch card-height">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <div class="header-title">
+                            <h4 class="card-title">Income</h4>
+                        </div>
+                        <div class="card-header-toolbar d-flex align-items-center">
+                            
+                        </div>
+                    </div>
+                    <div class="card-body">
+                    <h4>Revenue vs Profit</h4>
+                        <div id="am-columnlinr-chart" style="min-height: 400px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8">
+            <div class="card card-block card-stretch card-height">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <div class="header-title">
+                        <h4 class="card-title">Top Products</h4>
+                    </div>
+                    <div class="card-header-toolbar d-flex align-items-center">
+                        
+                    </div>
+                </div>
+                <div class="card-body">
+                <ul class="list-unstyled row top-product mb-0">
+                    <?php if (!empty($top_products)): ?>
+                        <?php foreach ($top_products as $sales): ?>
+                            <li class="col-lg-3">
+                                <div class="card card-block card-stretch card-height mb-0">
+                                    <div class="card-body">
+                                        <img src="<?php echo htmlspecialchars($sales['image_path']); ?>" class="style-img img-fluid m-auto p-3" alt="Product Image">
+                                        <div class="style-text text-left mt-3">
+                                            <h5 class="mb-1"><?php echo htmlspecialchars($sales['name']); ?></h5>
+                                            <p class="mb-0"><?php echo number_format($sales['total_sold']) . ' Item'; ?></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+            <li class="col-lg-12">
+                <div class="card card-block card-stretch card-height mb-0">
+                    <div class="card-body text-center">
+                        <p>No products available.</p>
+                    </div>
+                </div>
+            </li>
+        <?php endif; ?>
+    </ul>
+</div>
+
+            </div>
         </div>
+        <div class="col-lg-4">  
+    <div class="card card-transparent card-block card-stretch mb-4">
+        <div class="card-header d-flex align-items-center justify-content-between p-0">
+            <div class="header-title">
+                <h4 class="card-title mb-0">Best Item All Time</h4>
+            </div>
+            <div class="card-header-toolbar d-flex align-items-center">
+                <div><a href="page-list-sale.php" class="btn btn-primary view-btn font-size-14">View All</a></div>
+            </div>
+        </div>
+    </div>
+    <?php foreach ($top_products as $item) { ?>
+    <div class="card card-block card-stretch card-height-helf">
+        <div class="card-body card-item-right">
+            <div class="d-flex align-items-top">
+                <div class="bg-warning-light rounded">
+                    <img src="<?php echo $item['image_path']; ?>" class="style-img img-fluid m-auto" alt="image">
+                </div>
+                <div class="style-text text-left">
+                    <h5 class="mb-2"><?php echo $item['name']; ?></h5>
+                    <p class="mb-2">Total Sold : <?php echo number_format($item['total_sold']); ?></p>
+                    <!-- Assuming you have a column for total_earned, otherwise you can calculate or remove this part -->
+                    <!-- <p class="mb-0">Total Earned : $<?php echo number_format($item['total_earned'], 2); ?> M</p> -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php } ?>
+</div>
+<div class="col-lg-4">  
+    <div class="card card-block card-stretch card-height-helf">
+        <div class="card-body">
+            <div class="d-flex align-items-top justify-content-between">
+                <div class="">
+                    <p class="mb-0">Net Profit</p>
+                    <h5>$<?php echo $total_profit; ?></h5>
+                </div>
+                <div class="card-header-toolbar d-flex align-items-center">
+                    
+                </div>
+            </div>
+            <div id="layout1-chart-3" class="layout-chart-1"></div>
+        </div>
+    </div>
+    <div class="card card-block card-stretch card-height-helf">
+        <div class="card-body">
+            <div class="d-flex align-items-top justify-content-between">
+                <div class="">
+                    <p class="mb-0">Expenses</p>
+                    <h5>$<?php echo $total_expenses; ?></h5>
+                </div>
+                <div class="card-header-toolbar d-flex align-items-center">
+                    
+                </div>
+            </div>
+            <div id="layout1-chart-4" class="layout-chart-2"></div>
+        </div>
+    </div>
+</div>
+<div class="col-lg-8">  
+    <div class="card card-block card-stretch card-height">
+        <div class="card-header d-flex justify-content-between">
+            <div class="header-title">
+                <h4 class="card-title">Net Profit vs Expenditure</h4>
+            </div>                        
+            <div class="card-header-toolbar d-flex align-items-center">
+                
+            </div>
+        </div> 
+        <div class="card-body">
+            <div class="d-flex flex-wrap align-items-center mt-2">
+                <div class="d-flex align-items-center progress-order-left">
+                    <div class="progress progress-round m-0 primary conversation-bar" data-percent="46">
+                        <span class="progress-left">
+                            <span class="progress-bar"></span>
+                        </span>
+                        <span class="progress-right">
+                            <span class="progress-bar"></span>
+                        </span>
+                        <div class="progress-value text-primary">
+                            <?php echo $percentage_expenses_to_revenue; ?>%
+                        </div>
+                    </div>
+                    <div class="progress-value ml-3 pr-5 border-right">
+                        <h5>$<?php echo $total_expenses_combined; ?></h5>
+                        <p class="mb-0">Expenditure</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center ml-5 progress-order-right">
+                    <div class="progress progress-round m-0 orange conversation-bar" data-percent="46">
+                        <span class="progress-left">
+                            <span class="progress-bar"></span>
+                        </span>
+                        <span class="progress-right">
+                            <span class="progress-bar"></span>
+                        </span>
+                        <div class="progress-value text-secondary">
+                            <?php echo $percentage_profit_to_revenue; ?>%
+                        </div>
+                    </div>
+                    <div class="progress-value ml-3">
+                        <h5>$<?php echo $total_profit; ?></h5>
+                        <p class="mb-0">Net Profit</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body pt-0">
+            <div id="layout1-chart-5"></div>
+        </div>
+    </div>
+</div>
+
+        <!-- Page end  -->
+    </div>
       </div>
     </div>
     <!-- Wrapper End-->
@@ -729,8 +735,17 @@ try {
     <!-- Table Treeview JavaScript -->
     <script src="http://localhost:8000/assets/js/table-treeview.js"></script>
     
+    <!-- Chart Custom JavaScript -->
+    <script src="http://localhost:8000/assets/js/customizer.js"></script>
+    
+    <!-- Chart Custom JavaScript -->
+    <script async src="http://localhost:8000/assets/js/chart-custom1.js"></script>
+    
     <!-- app JavaScript -->
     <script src="http://localhost:8000/assets/js/app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+   
     <script>
 document.getElementById('createButton').addEventListener('click', function() {
     // Optional: Validate input or perform any additional checks here
@@ -739,5 +754,6 @@ document.getElementById('createButton').addEventListener('click', function() {
     window.location.href = 'invoice-form.php';
 });
 </script>
-  </body>
- </html>
+    
+</body>
+</html>
