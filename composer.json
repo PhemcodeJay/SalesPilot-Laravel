@@ -10,7 +10,7 @@
         "laravel/cashier": "^15.6",
         "laravel/framework": "^11.31",
         "laravel/tinker": "^2.9",
-        "paypal/paypal-server-sdk": "*",
+        "paypal/paypal-server-sdk": "^0.6.1",
         "stancl/tenancy": "^3.8"
     },
     "require-dev": {
