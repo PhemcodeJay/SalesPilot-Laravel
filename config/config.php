@@ -2,7 +2,7 @@
 $hostname = "localhost";
 $username = "root";
 $password = "";
-$database = "dbs13455438";
+$database = "laravel";
 
 $dsn = "mysql:host=$hostname;dbname=$database;charset=utf8";
 

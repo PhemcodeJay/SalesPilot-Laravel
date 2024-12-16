@@ -1,0 +1,495 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+ 
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TXR1WFJ4GP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-TXR1WFJ4GP');
+</script>
+  
+  <title>Home - Sales Pilot</title>
+  <meta content="" name="Boost your business efficiency with SalesPilot – the ultimate sales management app. Track leads, manage clients, and increase revenue effortlessly with our user-friendly platform.">
+  <meta content="" name="Sales productivity tools, Sales and Client management, Business efficiency tools">
+
+  <!-- Favicons -->
+  <link href="http://localhost:8000/home_assets/img/favicon.png" rel="icon">
+  <link href="http://localhost:8000/home_assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+
+  
+  <!-- Vendor CSS Files -->
+  <link href="http://localhost:8000/home_assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="http://localhost:8000/home_assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="http://localhost:8000/home_assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+  <link href="http://localhost:8000/home_assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+  <link href="http://localhost:8000/home_assets/vendor/aos/aos.css" rel="stylesheet">
+
+  <!-- Template Main CSS File -->
+  <link href="http://localhost:8000/home_assets/css/main.css" rel="stylesheet">
+</head>
+
+<body class="index-page" data-bs-spy="scroll" data-bs-target="#navmenu">
+  <!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W9MSPH2Q"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+  <!-- ======= Header ======= -->
+  <header id="header" class="header fixed-top d-flex align-items-center">
+    <div class="container-fluid d-flex align-items-center justify-content-between">
+
+      <a href="http://localhost:8000/index1.php" class="logo d-flex align-items-center me-auto me-xl-0">
+        <!-- Uncomment the line below if you also wish to use an image logo -->
+        <!-- <img src="/logonew.jpg" alt=""> -->
+        <img class="app-logo" src="http://localhost:8000/logonew.jpg" alt="Sales Pilot Logo">
+        <h1>SalesPilot</h1>
+        <span>.</span>
+      </a>
+
+      <!-- Nav Menu -->
+      <nav id="navmenu" class="navmenu">
+        <ul>
+          <li><a href="http://localhost:8000/index.html#hero" class="active">Home</a></li>
+          <li><a href="http://localhost:8000/index.html#about">About</a></li>
+          <li><a href="http://localhost:8000/index.html#services">Services</a></li>
+          <li><a href="http://localhost:8000/index.html#contact">Contact</a></li>
+        </ul>
+
+        <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+      </nav><!-- End Nav Menu -->
+
+      <a class="btn-getstarted" href="http://localhost:8000/loginpage.php">Login</a>
+
+    </div>
+  </header><!-- End Header -->
+
+  <main id="main">
+
+    <!-- Hero Section - Home Page -->
+    <section id="hero" class="hero">
+
+      <img src="http://localhost:8000/salespilotindex.jpg" alt="" data-aos="fade-in">
+
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10">
+            <h2 data-aos="fade-up" data-aos-delay="100">SalesPilot</h2>
+            <p data-aos="fade-up" data-aos-delay="200">Inventory Management & Sales Analytics</p>
+          </div>
+          <div class="col-lg-5">
+            <form action="http://localhost:8000/sign-up.php" class="sign-up-form d-flex" data-aos="fade-up" data-aos-delay="300">
+              <span class="form-control">Sign up and Activate Free Trial</span>
+              <input type="submit" class="btn btn-primary" value="Sign up">
+          </form> 
+          </div>
+        </div>
+      </div>
+
+    </section><!-- End Hero Section -->
+
+    <!-- About Section - Home Page -->
+    <section id="about" class="about">
+
+      <div class="container" data-aos="fade-up" data-aos-delay="100">
+        <div class="row align-items-xl-center gy-5">
+
+          <div class="col-xl-5 content">
+            <h3>SalesPilot</h3>
+            <h2>Inventory Management & Sales Analytics</h2>
+            <p>SalesPilot is a powerful inventory management and sales analytics tool that helps you streamline your business operations,
+                optimize inventory levels, and make data-driven decisions for increased sales and profitability.</p>
+            </div>
+          <div class="col-xl-7">
+            <div class="row gy-4 icon-boxes">
+              <div class="col-md-6" data-aos="fade-up" data-aos-delay="200">
+                <div class="icon-box">
+                  <i class="bi bi-briefcase-fill"></i>
+                  <h3>Inventory Management</h3>
+                  <p>Real-time monitoring and updating of product quantities to ensure accurate inventory levels, optimizing supply chain efficiency.
+                    Analyzing inventory data to derive insights, improve decision-making, and optimize stock levels for enhanced operational efficiency.</p>
+                </div>
+              </div> <!-- End Icon Box -->
+
+              <div class="col-md-6" data-aos="fade-up" data-aos-delay="300">
+                <div class="icon-box">
+                  <i class="bi bi-bar-chart-fill"></i>
+                  <h3>Sales Analytics</h3>
+                  <p>Assessing overall revenue, pinpointing top sales for strategic focus, ensuring profitability.
+
+                    Crafting insightful dashboards and graphics to simplify complex sales data, facilitating swift decision-making and trend identification.</p>
+                </div>
+              </div> <!-- End Icon Box -->
+
+              <div class="col-md-6" data-aos="fade-up" data-aos-delay="300">
+                <div class="icon-box">
+                  <i class="bi bi-clipboard-pulse"></i>
+                  <h3>Management Systems</h3>
+                  <p>As a full-stack developer, we design and build diverse management systems, including eCommerce platforms, ticketing systems, chatrooms, real estate solutions, inventory management, learning management systems (LMS), HR and payroll systems, customer relationship management (CRM), cryptocurrency payment gateways, and event management solutions. Our focus is on real-time data updates to ensure accuracy, optimize performance, and drive operational efficiency.</p>
+                </div>
+              </div> <!-- End Icon Box -->
+
+
+              <div class="col-md-6" data-aos="fade-up" data-aos-delay="300">
+                <div class="icon-box">
+                  <i class="bi bi-buildings"></i>
+                      <h3>About Us</h3>
+                      <p>At Phemcode Integrated Services, we specialize in crafting transformative solutions across web development, cybersecurity, cryptocurrency, and beyond. As a dynamic team driven by innovation, we build cutting-edge systems to help businesses thrive in the digital era. Every project is an opportunity to push boundaries and redefine success.</p>
+                    </div>
+                  </div> <!-- End Icon Box -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </section><!-- End About Section -->
+
+    
+    <!-- Services Section - Home Page -->
+    <section id="services" class="services">
+
+      <!--  Section Title -->
+      <div class="container section-title" data-aos="fade-up">
+        <h2>Services</h2>
+        <p>The innovation hub of Phemcode Integrated Services, the visionary force behind SalesPilot—an advanced inventory and sales analytics management system</p>
+      </div><!-- End Section Title -->
+
+      <div class="container">
+
+        <div class="row gy-4">
+
+          <div class="col-lg-6 " data-aos="fade-up" data-aos-delay="100">
+            <div class="service-item d-flex">
+              <div class="icon flex-shrink-0"><i class="bi bi-database-fill"></i></div>
+              <div>
+                <h4 class="title"><a href="https://phemcode.cybertrendhub.store" class="stretched-link">Web Development</a></h4>
+                <p class="description">Elevate your online presence with tailored, innovative web solutions where excellence meets digital transformation.</p>
+              </div>
+            </div>
+          </div>
+          <!-- End Service Item -->
+
+          <div class="col-lg-6 " data-aos="fade-up" data-aos-delay="200">
+            <div class="service-item d-flex">
+              <div class="icon flex-shrink-0"><i class="bi bi-currency-bitcoin"></i></div>
+              <div>
+                <h4 class="title"><a href="https://phemcode.cybertrendhub.store" class="stretched-link">Cryptocurrency Services</a></h4>
+                <p class="description">Navigate the complexities of the digital financial landscape with premium guidance from our cryptocurrency  experts.</p>
+              </div>
+            </div>
+          </div><!-- End Service Item -->
+
+          <div class="col-lg-6 " data-aos="fade-up" data-aos-delay="300">
+            <div class="service-item d-flex">
+              <div class="icon flex-shrink-0"><i class="bi bi-binoculars"></i></div>
+              <div>
+                <h4 class="title"><a href="https://phemcode.cybertrendhub.store" class="stretched-link">Cybersecurity</a></h4>
+                <p class="description">Safeguard your digital realm with proactive cybersecurity solutions protecting against evolving threats, ensuring digital resilience.</p>
+              </div>
+            </div>
+          </div><!-- End Service Item -->
+
+          <div class="col-lg-6 " data-aos="fade-up" data-aos-delay="400">
+            <div class="service-item d-flex">
+              <div class="icon flex-shrink-0"><i class="bi bi-graph-up"></i></div>
+              <div>
+                <h4 class="title"><a href="https://phemcode.cybertrendhub.store" class="stretched-link">Business Development </a></h4>
+                <p class="description">Ignite growth strategies, foster innovation, and unlock opportunities with dynamic business development services, your partner in sustainable success.</p>
+              </div>
+            </div>
+          </div><!-- End Service Item -->
+
+          <div class="col-lg-6 " data-aos="fade-up" data-aos-delay="500">
+            <div class="service-item d-flex">
+              <div class="icon flex-shrink-0"><i class="bi bi-pc-display"></i></div>
+              <div>
+                <h4 class="title"><a href="https://phemcode.cybertrendhub.store" class="stretched-link">ICT Solutions</a></h4>
+                <p class="description"> Unleash efficiency and optimization with  experienced system analysts, architects of seamless technological solutions, transforming businesses into streamlined, dynamic digital entities.</p>
+              </div>
+            </div>
+          </div><!-- End Service Item -->
+
+          <div class="col-lg-6 " data-aos="fade-up" data-aos-delay="600">
+            <div class="service-item d-flex">
+              <div class="icon flex-shrink-0"><i class="bi bi-cash-stack"></i></div>
+              <div>
+                <h4 class="title"><a href="https://phemcode.cybertrendhub.store" class="stretched-link">General Contracts & Acquisition</a></h4>
+                <p class="description">Seamlessly navigate contracts and acquisitions with seasoned expertise, ensuring strategic growth and operational excellence.</p>
+              </div>
+            </div>
+          </div><!-- End Service Item -->
+
+        </div>
+
+      </div>
+
+    </section><!-- End Services Section -->
+
+    <!-- Pricing Section - Home Page -->
+    <section id="pricing" class="pricing">
+
+      <!--  Section Title -->
+      <div class="container section-title" data-aos="fade-up">
+        <h2>SalesPilot Pricing Plans</h2>
+        <p>Choose the SalesPilot plan that aligns with your business size and ambitions, unlocking the power of comprehensive inventory and sales analytics.</p>
+      </div><!-- End Section Title -->
+
+      <div class="container" data-aos="zoom-in" data-aos-delay="100">
+
+        <div class="row g-4">
+
+          <div class="col-lg-4">
+            <div class="pricing-item featured">
+              <h3>Starter Plan (Small)</h3>
+              <div class="icon">
+                <i class="bi bi-box"></i>
+              </div>
+              <h4><sup>$</sup>5<span> / month</span></h4>
+              <ul>
+                <li><i class="bi bi-check"></i> <span>Ideal for retail businesses.</span></li>
+                <li><i class="bi bi-check"></i> <span>Affordable pricing tailored to your budget.</span></li>
+                <li><i class="bi bi-check"></i> <span>Essential features for efficient inventory and sales management.</span></li>
+              </ul>
+              <div class="text-center"><a href="pay.php" class="buy-btn">Buy Now</a></div>
+            </div>
+          </div><!-- End Pricing Item -->
+
+          <div class="col-lg-4">
+            <div class="pricing-item featured">
+              <h3>Growth Plan (Medium)</h3>
+              <div class="icon">
+                <i class="bi bi-rocket"></i>
+              </div>
+
+              <h4><sup>$</sup>15<span> / month</span></h4>
+              <ul>
+                <li><i class="bi bi-check"></i> <span>Designed for medium scale businesses.</span></li>
+                <li><i class="bi bi-check"></i> <span>Expanded features for enhanced scalability.</span></li>
+                <li><i class="bi bi-check"></i> <span>Analytical features for data driven decision.</span></li>
+              </ul>
+              <div class="text-center"><a href="pay.php" class="buy-btn">Buy Now</a></div>
+            </div>
+          </div><!-- End Pricing Item -->
+
+          <div class="col-lg-4">
+            <div class="pricing-item featured">
+              <h3>Enterprise Plan (Big)</h3>
+              <div class="icon">
+                <i class="bi bi-send"></i>
+              </div>
+              <h4><sup>$</sup>25<span> / month</span></h4>
+              <ul>
+                <li><i class="bi bi-check"></i> <span>Tailored for large enterprises.</span></li>
+                <li><i class="bi bi-check"></i> <span>Robust features and advanced analytics.</span></li>
+                <li><i class="bi bi-check"></i> <span>Customised support to meet the demands of your extensive operations.</span></li>
+              </ul>
+              <div class="text-center"><a href="pay.php" class="buy-btn">Buy Now</a></div>
+            </div>
+          </div><!-- End Pricing Item -->
+
+        </div>
+
+      </div>
+
+    </section><!-- End Pricing Section -->
+
+    
+    
+    <!-- Contact Section - Home Page -->
+    <section id="contact" class="contact">
+
+      <!--  Section Title -->
+      <div class="container section-title" data-aos="fade-up">
+        <h2>Contact</h2>
+        <p>Reach out for tailored solutions, collaboration, or inquiries. At Phemcode we are ready to assist and innovate with you</p>
+      </div><!-- End Section Title -->
+
+      <div class="container" data-aos="fade-up" data-aos-delay="100">
+
+        <div class="row gy-4">
+
+          <div class="col-lg-6">
+
+            <div class="row gy-4">
+              <div class="col-md-6">
+                <div class="info-item" data-aos="fade" data-aos-delay="200">
+                  <i class="bi bi-geo-alt"></i>
+                  <h3>Address</h3>
+                  <p>Nairobi CBD</p>
+                  <p>Nairobi, KENYA</p>
+                </div>
+              </div><!-- End Info Item -->
+
+              <div class="col-md-6">
+                <div class="info-item" data-aos="fade" data-aos-delay="300">
+                  <i class="bi bi-telephone"></i>
+                  <h3>Phone</h3>
+                  <p>+254 101 674289</p>
+                  <p>+234 813 136 5814</p>
+                </div>
+              </div><!-- End Info Item -->
+
+              <div class="col-md-6">
+                <div class="info-item" data-aos="fade" data-aos-delay="400">
+                  <i class="bi bi-envelope"></i>
+                  <h3>Email Us</h3>
+                  <p>admin@cybertrendhub.store</p>
+                  <p>info@salespilot.cybertrendhub.store</p>
+                </div>
+              </div><!-- End Info Item -->
+
+              <div class="col-md-6">
+                <div class="info-item" data-aos="fade" data-aos-delay="500">
+                  <i class="bi bi-clock"></i>
+                  <h3>Open Hours</h3>
+                  <p>Monday - Friday</p>
+                </div>
+              </div><!-- End Info Item -->
+
+            </div>
+
+          </div>
+
+          <div class="col-lg-6">
+            <form action="http://localhost:8000/feedback.php" method="post" class="php-email-form" data-aos="fade-up" data-aos-delay="200" id="feedback-form">
+    <div class="row gy-4">
+        <div class="col-md-6">
+            <input type="text" name="name" class="form-control" placeholder="Your Name" required>
+        </div>
+        
+        <div class="col-md-6">
+            <input type="text" class="form-control" name="phone" placeholder="Phone" required>
+        </div>
+
+        <div class="col-md-12">
+            <input type="email" class="form-control" name="email" placeholder="Your Email" required>
+        </div>
+
+        <div class="col-md-12">
+            <textarea class="form-control" name="message" rows="4" placeholder="Message" required></textarea>
+        </div>
+
+        <div class="col-md-12 text-center">
+            <!-- Show loading state while the form is being processed -->
+            <div class="loading" style="display:none;">Loading...</div>
+            <div class="error-message" style="display:none;"></div> <!-- Error message -->
+            <div class="sent-message" style="display:none;">Your message has been sent. Thank you!</div> <!-- Success message -->
+
+            <button type="submit">Send Message</button>
+        </div>
+    </div>
+</form>
+
+          </div><!-- End Contact Form -->
+
+        </div>
+
+      </div>
+
+    </section><!-- End Contact Section -->
+
+  </main>
+
+  <!-- ======= Footer ======= -->
+  <footer id="footer" class="footer">
+
+    <div class="container footer-top">
+      <div class="row gy-4">
+        <div class="col-lg-5 col-md-12 footer-about">
+          <a href="index.html" class="logo d-flex align-items-center">
+            <span>Sales Pilot</span>
+          </a>
+          <p>Phemcode Integrated Services | Innovate. Transform. Excel.
+            Elevate your business with our cutting-edge solutions. © [] All rights reserved</p>
+          <div class="social-links d-flex mt-4">
+            <a href="https://twitter.com/PhemcodeJay"><i class="bi bi-twitter"></i></a>
+            <a href="https://facebook.com/cybertrendstores"><i class="bi bi-facebook"></i></a>
+            <a href="https://instagram.com/cybertrendhub"><i class="bi bi-instagram"></i></a>
+            <a href="https://linkedin.com/in/phemcode"><i class="bi bi-linkedin"></i></a>
+            <a href="https://wa.me/254101674289"><i class="bi bi-whatsapp"></i></a>
+          </div>
+        </div>
+
+        <div class="col-lg-2 col-6 footer-links">
+          <h4>SiteMap</h4>
+          <ul>
+            <li><a href="http://localhost:8000/index.html#hero">Home</a></li>
+            <li><a href="http://localhost:8000/index.html#about">About us</a></li>
+            <li><a href="http://localhost:8000/index.html#services">Services</a></li>
+            <li><a href="http://localhost:8000/index.html#contact">Contact</a></li>
+            <li><a href="http://localhost:8000/terms-of-service.php">Terms of service</a></li>
+            <li><a href="http://localhost:8000/privacy-policy.php">Privacy policy</a></li>
+          </ul>
+        </div>
+
+        <div class="col-lg-2 col-6 footer-links">
+          <h4>Services</h4>
+          <ul>
+            <li><a href="http://localhost:8000/index.html#services">Cybersecurity</a></li>
+            <li><a href="http://localhost:8000/index.html#services">Web Development</a></li>
+            <li><a href="http://localhost:8000/index.html#services">Cryptocurrency</a></li>
+            <li><a href="http://localhost:8000/index.html#services">ICT Solutions</a></li>
+          </ul>
+        </div>
+
+        <div class="col-lg-3 col-md-12 footer-contact text-center text-md-start">
+          <h4>Contact</h4>
+          <p>Nairobi CBD</p>
+          <p>Nairobi County, Nairobi</p>
+          <p>Kenya</p>
+          <p class="mt-4"><strong>Phone:</strong> <span>+254 101 674 289</span></p>
+          <p><strong>Email:</strong> <span>info@salespilot.cybetrendhub.store</span></p>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="container copyright text-center mt-4">
+      <p>&copy; <span>Copyright</span> <strong class="px-1">SalesPilot</strong> <span>All Rights Reserved</span></p>
+      <div class="credits">
+        Designed by <a href="https://phemcode.cybertrendhub.store">Phemcode</a>
+      </div>
+    </div>
+
+  </footer><!-- End Footer -->
+
+  <!-- Scroll Top Button -->
+  <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+  <!-- Preloader -->
+  <div id="preloader">
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+
+  <!-- Vendor JS Files -->
+  <script src="http://localhost:8000/home_assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="http://localhost:8000/home_assets/vendor/glightbox/js/glightbox.min.js"></script>
+  <script src="http://localhost:8000/home_assets/vendor/purecounter/purecounter_vanilla.js"></script>
+  <script src="http://localhost:8000/home_assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+  <script src="http://localhost:8000/home_assets/vendor/swiper/swiper-bundle.min.js"></script>
+  <script src="http://localhost:8000/home_assets/vendor/aos/aos.js"></script>
+  <script src="http://localhost:8000/home_assets/vendor/php-email-form/validate.js"></script>
+
+  <!-- Template Main JS File -->
+  <script src="http://localhost:8000/home_assets/js/main.js"></script>
+
+</body>
+
+</html>
