@@ -96,3 +96,30 @@ class PayPalService
         return $this->apiContext;
     }
 }
+// app/Services/PayPalService.php
+namespace App\Services;
+
+use PayPal\Auth\OAuthTokenCredential;
+use PayPal\Rest\ApiContext;
+use Config;
+
+class PayPalservice
+{
+    private $apiContext;
+
+    public function __construct()
+    {
+        $this->apiContext = new ApiContext(
+            new OAuthTokenCredential(
+                Config::get('paypal.client_id'),
+                Config::get('paypal.secret')
+            )
+        );
+        $this->apiContext->setConfig(Config::get('paypal.settings'));
+    }
+
+    public function getApiContext()
+    {
+        return $this->apiContext;
+    }
+}

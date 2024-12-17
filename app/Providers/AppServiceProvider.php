@@ -22,3 +22,13 @@ class AppServiceProvider extends ServiceProvider
         //
     }
 }
+// app/Providers/AppServiceProvider.php
+
+use App\Services\PayPalService;
+
+public function register()
+{
+    $this->app->singleton(PayPalService::class, function ($app) {
+        return new PayPalService();
+    });
+}
