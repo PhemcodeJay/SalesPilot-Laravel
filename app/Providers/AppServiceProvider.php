@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Services\PayPalService;
+use OpenAI\Client as OpenAIClient;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -11,7 +13,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Register PayPalService as a singleton
+        $this->app->singleton(PayPalService::class, function ($app) {
+            return new PayPalService();
+        });
+
+        // Register OpenAI Client as a singleton
+        $this->app->singleton(OpenAIClient::class, function () {
+            return OpenAIClient::factory()
+                ->setApiKey(env('OPENAI_API_KEY'))
+                ->make();
+        });
     }
 
     /**
@@ -21,14 +33,4 @@ class AppServiceProvider extends ServiceProvider
     {
         //
     }
-}
-// app/Providers/AppServiceProvider.php
-
-use App\Services\PayPalService;
-
-public function register()
-{
-    $this->app->singleton(PayPalService::class, function ($app) {
-        return new PayPalService();
-    });
 }

@@ -11,6 +11,7 @@
         "laravel/framework": "^11.31",
         "laravel/passport": "^12.3",
         "laravel/tinker": "^2.9",
+        "openai-php/client": "*",
         "paypal/paypal-server-sdk": "^0.6.1",
         "stancl/tenancy": "^3.8"
     },
